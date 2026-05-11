@@ -1,7 +1,7 @@
 package com.digitello.user_service.controller;
 
+import com.digitello.user_service.dto.CreateUserRequest;
 import com.digitello.user_service.dto.UserDTO;
-import com.digitello.user_service.entity.User;
 import com.digitello.user_service.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -27,12 +27,12 @@ public class UserController {
 
     /**
      * Endpoint pour créer un nouvel utilisateur.
-     * @param user Les données de l'utilisateur.
-     * @return L'utilisateur créé (sans son mot de passe).
+     * @param request Les données de l'utilisateur.
+     * @return L'utilisateur créé.
      */
     @PostMapping
-    public ResponseEntity<UserDTO> createUser(@RequestBody User user) {
-        return ResponseEntity.status(201).body(userService.createUser(user));
+    public ResponseEntity<UserDTO> createUser(@RequestBody CreateUserRequest request) {
+        return ResponseEntity.status(201).body(userService.createUser(request));
     }
 
     /**

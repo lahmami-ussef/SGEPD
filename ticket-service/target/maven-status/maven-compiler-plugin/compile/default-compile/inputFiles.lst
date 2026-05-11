@@ -1,0 +1,13 @@
+C:\Users\youss\Desktop\SGEPD-Project\ticket-service\src\main\java\com\digitello\ticket_service\config\SecurityConfig.java
+C:\Users\youss\Desktop\SGEPD-Project\ticket-service\src\main\java\com\digitello\ticket_service\controller\TicketController.java
+C:\Users\youss\Desktop\SGEPD-Project\ticket-service\src\main\java\com\digitello\ticket_service\dto\AssignTicketRequest.java
+C:\Users\youss\Desktop\SGEPD-Project\ticket-service\src\main\java\com\digitello\ticket_service\dto\CreateTicketRequest.java
+C:\Users\youss\Desktop\SGEPD-Project\ticket-service\src\main\java\com\digitello\ticket_service\dto\ResolveTicketRequest.java
+C:\Users\youss\Desktop\SGEPD-Project\ticket-service\src\main\java\com\digitello\ticket_service\dto\TicketResponse.java
+C:\Users\youss\Desktop\SGEPD-Project\ticket-service\src\main\java\com\digitello\ticket_service\dto\TransferTicketRequest.java
+C:\Users\youss\Desktop\SGEPD-Project\ticket-service\src\main\java\com\digitello\ticket_service\entity\Ticket.java
+C:\Users\youss\Desktop\SGEPD-Project\ticket-service\src\main\java\com\digitello\ticket_service\entity\TicketPriority.java
+C:\Users\youss\Desktop\SGEPD-Project\ticket-service\src\main\java\com\digitello\ticket_service\entity\TicketStatus.java
+C:\Users\youss\Desktop\SGEPD-Project\ticket-service\src\main\java\com\digitello\ticket_service\repository\TicketRepository.java
+C:\Users\youss\Desktop\SGEPD-Project\ticket-service\src\main\java\com\digitello\ticket_service\service\TicketService.java
+C:\Users\youss\Desktop\SGEPD-Project\ticket-service\src\main\java\com\digitello\ticket_service\TicketServiceApplication.java

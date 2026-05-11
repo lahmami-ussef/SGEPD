@@ -40,11 +40,11 @@ public class AuthService {
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail())
-                .fullName(request.getFullName())
                 .role(request.getRole() != null ? request.getRole() : User.Role.CLIENT)
                 .build();
 
         userRepository.save(user);
+
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
         return new AuthResponse(token, user.getUsername(), user.getRole().name());
     }

@@ -17,6 +17,5 @@ public class RegisterRequest {
     private String password;
     @Email
     private String email;
-    private String fullName;
     private User.Role role;
 }

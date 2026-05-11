@@ -1,10 +1,10 @@
 package com.digitello.user_service.service;
 
+import com.digitello.user_service.dto.CreateUserRequest;
 import com.digitello.user_service.dto.UserDTO;
 import com.digitello.user_service.entity.User;
 import com.digitello.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,21 +18,25 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
     /**
-     * Crée un nouvel utilisateur en encodant son mot de passe.
-     * @param user L'entité utilisateur à enregistrer.
+     * Crée un nouvel utilisateur.
+     * @param request Les données de l'utilisateur.
      * @return Le DTO de l'utilisateur créé.
      */
-    public UserDTO createUser(User user) {
-        // Vérifier si l'email existe déjà pour éviter les doublons
-        if (userRepository.existsByEmail(user.getEmail())) {
+    public UserDTO createUser(CreateUserRequest request) {
+        // Vérifier si l'email existe déjà
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email déjà utilisé");
         }
         
-        // Crypter le mot de passe avant l'enregistrement en base de données
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        // Mapper DTO -> Entity
+        User user = User.builder()
+                .username(request.getUsername())
+                .fullName(request.getFullName())
+                .email(request.getEmail())
+                .role(User.Role.valueOf(request.getRole()))
+                .build();
         
         // Sauvegarder l'entité
         User savedUser = userRepository.save(user);
@@ -74,8 +78,10 @@ public class UserService {
     private UserDTO mapToDTO(User user) {
         return UserDTO.builder()
                 .id(user.getId())
-                .nom(user.getNom())
+                .username(user.getUsername())
+                .fullName(user.getFullName())
                 .email(user.getEmail())
+                .role(user.getRole().name())
                 .build();
     }
 }
