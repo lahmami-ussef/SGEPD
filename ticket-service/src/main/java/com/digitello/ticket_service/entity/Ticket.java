@@ -1,14 +1,14 @@
 package com.digitello.ticket_service.entity;
 
-import lombok.*;
+import lombok.*;// lombok est une bibliothèque qui réduit le code répétitif.
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "tickets")
-@Data
-@Builder
-@NoArgsConstructor
+@Entity // tell JPA to manage this entity (store in database)
+@Table(name = "tickets") // table name in the database is tickets
+@Data // generate getters and setters 
+@Builder // allows you to create objects 
+@NoArgsConstructor // 
 @AllArgsConstructor
 public class Ticket {
 
@@ -66,7 +66,7 @@ public class Ticket {
         this.updatedAt = LocalDateTime.now();
     }
 
-    @PreUpdate
+    @PreUpdate // after the modification 
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }

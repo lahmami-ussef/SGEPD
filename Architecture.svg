@@ -1,0 +1,97 @@
+<svg width="1000" height="600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1000" height="600" fill="#ffffff" />
+  
+  <!-- Client Side -->
+  <rect x="20" y="100" width="150" height="300" rx="15" fill="#f8f9fa" stroke="#333" stroke-width="2"/>
+  <text x="95" y="130" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">Client Side</text>
+  <text x="95" y="160" text-anchor="middle" font-family="Arial" font-size="14">React JS</text>
+  <text x="95" y="380" text-anchor="middle" font-family="Arial" font-size="14">Leaflet</text>
+  <!-- React Logo placeholder -->
+  <circle cx="95" cy="250" r="30" fill="none" stroke="#61dafb" stroke-width="3"/>
+  
+  <!-- API Gateway -->
+  <polygon points="250,250 350,150 450,250 350,350" fill="#e1f5fe" stroke="#01579b" stroke-width="2"/>
+  <text x="350" y="240" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">API Gateway</text>
+  <text x="350" y="265" text-anchor="middle" font-family="Arial" font-size="12">Spring Cloud Gateway</text>
+
+  <!-- Auth Service -->
+  <rect x="400" y="50" width="180" height="80" rx="10" fill="#fff9c4" stroke="#fbc02d" stroke-width="2"/>
+  <text x="490" y="80" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">Auth Service</text>
+  <text x="490" y="105" text-anchor="middle" font-family="Arial" font-size="12">JWT + Spring Security</text>
+
+  <!-- Microservices Block -->
+  <rect x="400" y="180" width="300" height="300" rx="10" fill="#f1f8e9" stroke="#33691e" stroke-width="2"/>
+  <text x="550" y="210" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">Microservices</text>
+  
+  <!-- Services inside -->
+  <rect x="420" y="230" width="120" height="30" rx="5" fill="white" stroke="#333" stroke-width="1"/>
+  <text x="480" y="250" text-anchor="middle" font-family="Arial" font-size="12">User Service</text>
+  
+  <rect x="420" y="270" width="120" height="30" rx="5" fill="white" stroke="#333" stroke-width="1"/>
+  <text x="480" y="290" text-anchor="middle" font-family="Arial" font-size="12">Client Service</text>
+  
+  <rect x="420" y="310" width="120" height="30" rx="5" fill="white" stroke="#333" stroke-width="1"/>
+  <text x="480" y="330" text-anchor="middle" font-family="Arial" font-size="12">Screen Service</text>
+  
+  <rect x="420" y="350" width="120" height="30" rx="5" fill="white" stroke="#333" stroke-width="1"/>
+  <text x="480" y="370" text-anchor="middle" font-family="Arial" font-size="12">Ticket Service</text>
+  
+  <rect x="560" y="230" width="120" height="30" rx="5" fill="white" stroke="#333" stroke-width="1"/>
+  <text x="620" y="250" text-anchor="middle" font-family="Arial" font-size="12">Assignment Service</text>
+  
+  <rect x="560" y="270" width="120" height="30" rx="5" fill="white" stroke="#333" stroke-width="1"/>
+  <text x="620" y="290" text-anchor="middle" font-family="Arial" font-size="12">Location Service</text>
+  
+  <rect x="560" y="310" width="120" height="30" rx="5" fill="white" stroke="#333" stroke-width="1"/>
+  <text x="620" y="330" text-anchor="middle" font-family="Arial" font-size="12">Dashboard Service</text>
+
+  <!-- OpenStreetMap -->
+  <rect x="250" y="500" width="150" height="50" rx="5" fill="#fff" stroke="#333" stroke-width="1"/>
+  <text x="325" y="530" text-anchor="middle" font-family="Arial" font-size="14">OpenStreetMap</text>
+
+  <!-- Databases Block -->
+  <rect x="750" y="20" width="230" height="560" rx="15" fill="#fafafa" stroke="#333" stroke-width="2"/>
+  <text x="865" y="50" text-anchor="middle" font-family="Arial" font-size="18" font-weight="bold">PostgreSQL DBs</text>
+  
+  <!-- DB nodes -->
+  <rect x="780" y="80" width="170" height="40" rx="10" fill="white" stroke="#333"/>
+  <text x="865" y="105" text-anchor="middle" font-family="Arial" font-size="14">User/Auth DB</text>
+  
+  <rect x="780" y="140" width="170" height="40" rx="10" fill="white" stroke="#333"/>
+  <text x="865" y="165" text-anchor="middle" font-family="Arial" font-size="14">Client DB</text>
+  
+  <rect x="780" y="200" width="170" height="40" rx="10" fill="white" stroke="#333"/>
+  <text x="865" y="225" text-anchor="middle" font-family="Arial" font-size="14">Screen DB</text>
+  
+  <rect x="780" y="260" width="170" height="40" rx="10" fill="white" stroke="#333"/>
+  <text x="865" y="285" text-anchor="middle" font-family="Arial" font-size="14">Ticket DB</text>
+  
+  <rect x="780" y="320" width="170" height="40" rx="10" fill="white" stroke="#333"/>
+  <text x="865" y="345" text-anchor="middle" font-family="Arial" font-size="14">Assignment DB</text>
+  
+  <rect x="780" y="380" width="170" height="40" rx="10" fill="white" stroke="#333"/>
+  <text x="865" y="405" text-anchor="middle" font-family="Arial" font-size="14">Location DB</text>
+
+  <!-- Connectors -->
+  <!-- Client to Gateway -->
+  <path d="M170 250 Q 210 250 250 250" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="210" y="240" text-anchor="middle" font-size="12">HTTPS</text>
+  
+  <!-- Gateway to Auth -->
+  <path d="M350 150 Q 350 90 400 90" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  
+  <!-- Gateway to Microservices -->
+  <path d="M450 250 Q 475 250 500 250" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Services to DB -->
+  <path d="M700 300 L 750 300" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="725" y="290" text-anchor="middle" font-size="12">ORM</text>
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#333" />
+    </marker>
+  </defs>
+</svg>
