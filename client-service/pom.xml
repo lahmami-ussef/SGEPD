@@ -12,9 +12,9 @@
     </parent>
 
     <groupId>com.digitello</groupId>
-    <artifactId>user-service</artifactId>
+    <artifactId>client-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>user-service</name>
+    <name>client-service</name>
 
     <properties>
         <java.version>17</java.version>
