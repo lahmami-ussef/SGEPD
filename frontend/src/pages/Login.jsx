@@ -11,14 +11,16 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (login(username, password)) {
+    const success = await login(username, password);
+    if (success) {
       navigate('/dashboard');
     } else {
       setError('Identifiants invalides (admin/admin)');
     }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">

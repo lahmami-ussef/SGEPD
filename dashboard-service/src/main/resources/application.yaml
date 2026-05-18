@@ -6,4 +6,10 @@ spring:
     name: dashboard-service
 
 jwt:
-  secret: c2VjcmV0LWtleS1mb3ItZGlnaXRlbGxvLXByb2plY3QtdGhhdC1tdXN0LWJlLWxvbmctZW5vdWdo
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+
+services:
+  screen-url: http://localhost:8082
+  ticket-url: http://localhost:8083
+  client-url: http://localhost:8083
+  assignment-url: http://localhost:8084
