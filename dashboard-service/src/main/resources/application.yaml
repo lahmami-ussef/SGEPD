@@ -1,0 +1,9 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: dashboard-service
+
+jwt:
+  secret: c2VjcmV0LWtleS1mb3ItZGlnaXRlbGxvLXByb2plY3QtdGhhdC1tdXN0LWJlLWxvbmctZW5vdWdo

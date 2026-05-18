@@ -59,7 +59,7 @@ public class AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail())
                 .role(request.getRole() != null ? request.getRole() : User.Role.CLIENT)
-                .build();
+                .build(); // 
 
         userRepository.save(user);
 
