@@ -40,8 +40,10 @@ public class ClientController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteClient(@PathVariable Long id) {
-        clientService.deleteClient(id);
+    public ResponseEntity<Void> deleteClient(
+            @PathVariable Long id,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        clientService.deleteClient(id, authHeader);
         return ResponseEntity.noContent().build();
     }
 }
