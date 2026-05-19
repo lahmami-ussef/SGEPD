@@ -1,0 +1,13 @@
+com\digitello\client_service\dto\ClientResponse.class
+com\digitello\client_service\config\SecurityConfig.class
+com\digitello\client_service\entity\Client.class
+com\digitello\client_service\entity\Client$ClientBuilder.class
+com\digitello\client_service\service\ClientService.class
+com\digitello\client_service\dto\ClientRequest.class
+com\digitello\client_service\controller\ClientController.class
+com\digitello\client_service\repository\ClientRepository.class
+com\digitello\client_service\dto\ClientRequest$ClientRequestBuilder.class
+com\digitello\client_service\security\JwtUtil.class
+com\digitello\client_service\security\JwtAuthFilter.class
+com\digitello\client_service\dto\ClientResponse$ClientResponseBuilder.class
+com\digitello\client_service\ClientServiceApplication.class

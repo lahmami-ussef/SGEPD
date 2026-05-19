@@ -2,7 +2,7 @@ spring:
   application:
     name: ticket-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/ticket_db
+    url: jdbc:postgresql://localhost:5433/ticket_db
     username: postgres
     password: mouad3at3at
     driver-class-name: org.postgresql.Driver
@@ -16,7 +16,7 @@ spring:
         format_sql: true
 
 server:
-  port: 8083
+  port: 8084
   servlet:
     context-path: /
 
@@ -27,5 +27,5 @@ logging:
 
 app:
   jwt:
-    secret: mySecretKeyForJWTTokenGenerationAndValidation12345
+    secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
     expiration: 86400000  # 24 hours in milliseconds

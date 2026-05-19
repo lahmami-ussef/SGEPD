@@ -2,7 +2,7 @@ spring:
   application:
     name: ticket-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/ticket_db
+    url: jdbc:postgresql://localhost:5433/ticket_db
     username: postgres
     password: mouad3at3at
     driver-class-name: org.postgresql.Driver
@@ -16,7 +16,7 @@ spring:
         format_sql: true
 
 server:
-  port: 8083
+  port: 8084
   servlet:
     context-path: /
 

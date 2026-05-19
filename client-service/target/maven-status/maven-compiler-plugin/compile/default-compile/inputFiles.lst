@@ -1,0 +1,10 @@
+C:\Users\PC\Downloads\SGEPD\client-service\src\main\java\com\digitello\client_service\ClientServiceApplication.java
+C:\Users\PC\Downloads\SGEPD\client-service\src\main\java\com\digitello\client_service\config\SecurityConfig.java
+C:\Users\PC\Downloads\SGEPD\client-service\src\main\java\com\digitello\client_service\controller\ClientController.java
+C:\Users\PC\Downloads\SGEPD\client-service\src\main\java\com\digitello\client_service\dto\ClientRequest.java
+C:\Users\PC\Downloads\SGEPD\client-service\src\main\java\com\digitello\client_service\dto\ClientResponse.java
+C:\Users\PC\Downloads\SGEPD\client-service\src\main\java\com\digitello\client_service\entity\Client.java
+C:\Users\PC\Downloads\SGEPD\client-service\src\main\java\com\digitello\client_service\repository\ClientRepository.java
+C:\Users\PC\Downloads\SGEPD\client-service\src\main\java\com\digitello\client_service\security\JwtAuthFilter.java
+C:\Users\PC\Downloads\SGEPD\client-service\src\main\java\com\digitello\client_service\security\JwtUtil.java
+C:\Users\PC\Downloads\SGEPD\client-service\src\main\java\com\digitello\client_service\service\ClientService.java

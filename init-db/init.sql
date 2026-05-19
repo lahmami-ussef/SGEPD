@@ -1,3 +1,5 @@
 CREATE DATABASE auth_db;
 CREATE DATABASE user_db;
 CREATE DATABASE ticket_db;
+CREATE DATABASE screen_db;
+CREATE DATABASE client_db;

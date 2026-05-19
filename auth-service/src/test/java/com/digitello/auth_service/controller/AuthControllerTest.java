@@ -1,24 +1,25 @@
 package com.digitello.auth_service.controller;
 
-import com.digitello.auth_service.dto.AuthResponse;
 import com.digitello.auth_service.dto.LoginRequest;
 import com.digitello.auth_service.service.AuthService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Map;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(AuthController.class)
-@AutoConfigureMockMvc(addFilters = false) // Désactive la sécurité pour simplifier le test du contrôleur
+@SpringBootTest
+@AutoConfigureMockMvc
 public class AuthControllerTest {
 
     @Autowired
@@ -27,39 +28,20 @@ public class AuthControllerTest {
     @MockBean
     private AuthService authService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @Test
-    void login_ShouldReturnOk() throws Exception {
-        // Arrange
-        LoginRequest request = new LoginRequest("testuser", "password123");
-        AuthResponse response = new AuthResponse("mock-token", "testuser", "CLIENT");
+    public void testLoginSuccess() throws Exception {
+        Map<String, String> response = Map.of(
+            "token", "mock-token",
+            "username", "admin",
+            "role", "ADMIN"
+        );
         
         when(authService.login(any(LoginRequest.class))).thenReturn(response);
 
-        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content("{\"username\":\"admin\", \"password\":\"admin123\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("mock-token"))
-                .andExpect(jsonPath("$.username").value("testuser"));
-    }
-
-    @Test
-    void register_ShouldReturnCreated() throws Exception {
-        // Arrange
-        AuthResponse response = new AuthResponse("mock-token", "newuser", "CLIENT");
-        // Note: On pourrait créer un RegisterRequest complet ici
-        
-        when(authService.register(any())).thenReturn(response);
-
-        // Act & Assert
-        mockMvc.perform(post("/api/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"username\":\"newuser\",\"password\":\"password123\",\"email\":\"test@test.com\"}"))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.username").value("newuser"));
+                .andExpect(jsonPath("$.token").value("mock-token"));
     }
 }

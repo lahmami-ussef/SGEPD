@@ -5,7 +5,7 @@ spring:
   application:
     name: screen-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/screen_db
+    url: jdbc:postgresql://localhost:5433/screen_db
     username: postgres
     password: mouad3at3at
   jpa:

@@ -72,6 +72,26 @@ public class UserService {
     }
 
     /**
+     * Met à jour le rôle d'un utilisateur par son nom d'utilisateur.
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public UserDTO updateUserRole(String username, String role) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé dans le service utilisateur"));
+        user.setRole(User.Role.valueOf(role));
+        User savedUser = userRepository.save(user);
+        return mapToDTO(savedUser);
+    }
+
+    /**
+     * Supprime un utilisateur de la base de données par son nom d'utilisateur.
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public void deleteUserByUsername(String username) {
+        userRepository.deleteByUsername(username);
+    }
+
+    /**
      * Méthode privée pour transformer une Entité (User) en DTO (UserDTO).
      * Cela permet de ne pas exposer le champ 'password' vers l'extérieur.
      */

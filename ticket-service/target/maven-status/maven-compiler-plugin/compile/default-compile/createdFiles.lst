@@ -8,8 +8,10 @@ com\digitello\ticket_service\dto\TransferTicketRequest.class
 com\digitello\ticket_service\controller\TicketController.class
 com\digitello\ticket_service\repository\TicketRepository.class
 com\digitello\ticket_service\dto\CreateTicketRequest.class
+com\digitello\ticket_service\security\JwtAuthFilter.class
 com\digitello\ticket_service\dto\ResolveTicketRequest.class
 com\digitello\ticket_service\dto\ResolveTicketRequest$ResolveTicketRequestBuilder.class
+com\digitello\ticket_service\security\JwtUtil.class
 com\digitello\ticket_service\entity\Ticket.class
 com\digitello\ticket_service\entity\TicketStatus.class
 com\digitello\ticket_service\entity\TicketPriority.class

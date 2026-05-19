@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import { Lock, User, ShieldCheck, LogIn } from 'lucide-react';
+import api from '../api';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -11,12 +12,23 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (login(username, password)) {
-      navigate('/dashboard');
-    } else {
-      setError('Identifiants invalides (admin/admin)');
+    try {
+      const res = await api.post('/auth/login', { username, password });
+      const { token, role } = res.data;
+      
+      localStorage.setItem('token', token);
+      
+      if (login({ username, role, token })) {
+        navigate('/dashboard');
+      }
+    } catch (err) {
+        if (err.response && err.response.status === 401 && err.response.data.message === "Account pending admin approval") {
+            setError("Votre compte est en attente de validation par un administrateur.");
+        } else {
+            setError('Identifiants invalides');
+        }
     }
   };
 
@@ -97,7 +109,20 @@ const Login = () => {
             </button>
           </form>
 
-          <p className="text-center text-slate-300 text-xs mt-8">
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px bg-slate-100" />
+            <span className="text-slate-300 text-xs">ou</span>
+            <div className="flex-1 h-px bg-slate-100" />
+          </div>
+
+          <button
+            onClick={() => navigate('/register')}
+            className="flex items-center justify-center gap-2 w-full border border-slate-200 hover:border-emerald-400 hover:text-emerald-600 text-slate-500 text-sm font-medium py-2.5 rounded-lg transition-all"
+          >
+            Créer un compte
+          </button>
+
+          <p className="text-center text-slate-300 text-xs mt-6">
             © 2026 Digitello. Tous droits réservés.
           </p>
         </div>

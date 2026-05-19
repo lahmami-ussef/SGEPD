@@ -59,4 +59,21 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * Endpoint pour mettre à jour le rôle d'un utilisateur par son username.
+     */
+    @PutMapping("/username/{username}/role")
+    public ResponseEntity<UserDTO> updateUserRole(@PathVariable String username, @RequestParam String role) {
+        return ResponseEntity.ok(userService.updateUserRole(username, role));
+    }
+
+    /**
+     * Endpoint pour supprimer un utilisateur par son username.
+     */
+    @DeleteMapping("/username/{username}")
+    public ResponseEntity<Void> deleteUserByUsername(@PathVariable String username) {
+        userService.deleteUserByUsername(username);
+        return ResponseEntity.noContent().build();
+    }
 }
