@@ -5,8 +5,14 @@ import com.digitello.client_service.dto.ClientResponse;
 import com.digitello.client_service.entity.Client;
 import com.digitello.client_service.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,6 +22,10 @@ import java.util.stream.Collectors;
 public class ClientService {
 
     private final ClientRepository clientRepository;
+    private final RestTemplate restTemplate;
+
+    @Value("${services.assignment-url:http://localhost:8084}")
+    private String assignmentServiceUrl;
 
     @Transactional
     public ClientResponse createClient(ClientRequest request) {
@@ -66,13 +76,35 @@ public class ClientService {
     }
 
     @Transactional
-    public void deleteClient(Long id) {
+    public void deleteClient(Long id, String authHeader) {
         Client client = clientRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Client non trouvé"));
 
-        // TODO: Check for active/future assignments before deleting
-        // TODO: Deactivate user account via API Gateway/orchestrator later
+        // 1. Vérifier l'intégrité référentielle
+        String url = assignmentServiceUrl + "/api/assignments/client/" + id + "/has-active";
+        
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            if (authHeader != null && !authHeader.isEmpty()) {
+                headers.set("Authorization", authHeader);
+            }
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
 
+            ResponseEntity<Boolean> response = restTemplate.exchange(url, HttpMethod.GET, entity, Boolean.class);
+            Boolean hasActiveAssignments = response.getBody();
+            
+            if (Boolean.TRUE.equals(hasActiveAssignments)) {
+                throw new RuntimeException("Impossible de supprimer : ce client possède des assignations liées.");
+            }
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur lors de la communication avec le service d'assignation : " + e.getMessage());
+        }
+
+        // 2. TODO: Deactivate user account via API Gateway/orchestrator later
+
+        // 3. Delete the client
         clientRepository.delete(client);
     }
 

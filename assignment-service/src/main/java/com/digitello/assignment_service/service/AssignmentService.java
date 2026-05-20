@@ -102,4 +102,11 @@ public class AssignmentService {
                 .map(AssignmentResponse::fromEntity)
                 .collect(Collectors.toList());
     }
+
+    public boolean checkIfClientHasActiveAssignments(Long clientId) {
+    // Exemple : Vérifier dans le repository si des assignations ACTIVES ou FUTURES existent
+    // return assignmentRepository.existsByClientIdAndStatusIn(clientId, Arrays.asList("ACTIF", "FUTUR"));
+    return assignmentRepository.existsByClientId(clientId); // Version simplifiée
+}
+
 }

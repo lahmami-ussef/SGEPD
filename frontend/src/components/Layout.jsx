@@ -10,9 +10,7 @@ import {
   Settings, 
   LogOut, 
   ShieldCheck,
-  Bell,
-  User as UserIcon,
-  ChevronDown
+  Bell
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 

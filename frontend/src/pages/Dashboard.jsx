@@ -11,10 +11,8 @@ import {
   Plus, 
   Ticket as TicketIcon, 
   CheckCircle2, 
-  Clock, 
   ChevronRight, 
   AlertTriangle,
-  User as UserIcon,
   ShieldAlert,
   Server,
   Wrench
@@ -52,16 +50,16 @@ const Dashboard = () => {
 
     try {
       // 1. Fetch screens (used by all roles)
-      const screensRes = await api.get('/api/screens');
+      const screensRes = await api.get('/screens');
       setScreens(screensRes.data || []);
 
       // 2. Fetch tickets (used by all roles)
-      const ticketsRes = await api.get('/api/tickets');
+      const ticketsRes = await api.get('/tickets');
       setTickets(ticketsRes.data || []);
 
       // 3. Fetch clients (Admin only)
       if (userRole === 'ADMIN') {
-        const clientsRes = await api.get('/api/clients');
+        const clientsRes = await api.get('/clients');
         setClients(clientsRes.data || []);
       }
     } catch (err) {
@@ -102,6 +100,7 @@ const Dashboard = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+            Tableau de bord
             {userRole === 'ADMIN' && <span className="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Vue Administrateur</span>}
             {userRole === 'CLIENT' && <span className="bg-blue-100 text-blue-800 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Espace Client</span>}
             {userRole === 'TECHNICIEN' && <span className="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Espace Technicien</span>}

@@ -62,4 +62,11 @@ public class AssignmentController {
             @RequestParam(defaultValue = "7") int days) {
         return ResponseEntity.ok(assignmentService.getExpiringSoon(days));
     }
+
+    // cette route permet de verifier si un client a des assignments actifs
+    @GetMapping("/client/{clientId}/has-active")
+public ResponseEntity<Boolean> hasActiveAssignments(@PathVariable Long clientId) {
+    boolean hasActive = assignmentService.checkIfClientHasActiveAssignments(clientId);
+    return ResponseEntity.ok(hasActive);
+}
 }

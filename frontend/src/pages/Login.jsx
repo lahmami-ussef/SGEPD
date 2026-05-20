@@ -24,13 +24,14 @@ const Login = () => {
         navigate('/dashboard');
       }
     } catch (err) {
-        if (err.response && err.response.status === 401 && err.response.data.message === "Account pending admin approval") {
-            setError("Votre compte est en attente de validation par un administrateur.");
-        } else {
-            setError('Identifiants invalides');
-        }
+      if (err.response && err.response.status === 401 && err.response.data.message === "Account pending admin approval") {
+        setError("Votre compte est en attente de validation par un administrateur.");
+      } else {
+        setError('Identifiants invalides');
+      }
     }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">

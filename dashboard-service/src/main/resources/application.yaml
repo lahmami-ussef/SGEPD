@@ -1,0 +1,15 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: dashboard-service
+
+jwt:
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+
+services:
+  screen-url: http://localhost:8082
+  ticket-url: http://localhost:8083
+  client-url: http://localhost:8083
+  assignment-url: http://localhost:8084
