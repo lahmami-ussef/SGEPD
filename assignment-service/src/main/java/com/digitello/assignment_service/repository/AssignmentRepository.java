@@ -9,6 +9,7 @@ import java.util.List;
 
 public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     List<Assignment> findByScreenId(Long screenId);
+    boolean existsByClientId(Long clientId);
     List<Assignment> findByClientId(Long clientId);
     List<Assignment> findByStatus(Assignment.Status status);
 

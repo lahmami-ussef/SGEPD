@@ -4,7 +4,7 @@ import TicketFormModal from '../components/TicketFormModal';
 import api from '../api';
 import { RefreshCw, Ticket, CheckCircle, Clock, AlertTriangle, UserCheck, Search, MoreVertical, Play, Check, XCircle, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {jwtDecode} from 'jwt-decode';
+import jwtDecode from 'jwt-decode';
 
 const TicketManagement = () => {
   const [tickets, setTickets] = useState([]);

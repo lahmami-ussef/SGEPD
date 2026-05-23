@@ -11,5 +11,5 @@ jwt:
 services:
   screen-url: http://localhost:8082
   ticket-url: http://localhost:8083
-  client-url: http://localhost:8083
+  client-url: http://localhost:8086
   assignment-url: http://localhost:8084

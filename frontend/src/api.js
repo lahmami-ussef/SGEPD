@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api', // On revient sur la Gateway
+  baseURL: 'http://127.0.0.1:8090/api', // On passe par la Gateway sur le port 8090 en IPv4
 });
 
 api.interceptors.request.use((config) => {

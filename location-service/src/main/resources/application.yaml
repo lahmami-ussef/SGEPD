@@ -5,7 +5,7 @@ spring:
   application:
     name: location-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/location_db
+    url: jdbc:postgresql://localhost:5433/location_db
     username: postgres
     password: mouad3at3at
   jpa:

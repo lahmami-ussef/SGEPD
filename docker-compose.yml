@@ -11,13 +11,163 @@ services:
       - "5433:5432"
     volumes:
       - sgepd-db-data:/var/lib/postgresql/data
-      - ./init-db:/docker-entrypoint-initdb.d
+      - ./init-db:/docker-entrypoint-initdb.d   # optionnel
+    networks:
+      - app-network
 
   redis:
     image: redis:latest
     container_name: sgepd-redis
     ports:
       - "6379:6379"
+    networks:
+      - app-network
+
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-db
+      - redis
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: mouad3at3at
+      SPRING_REDIS_HOST: redis
+      APP_JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    networks:
+      - app-network
+
+  user-service:
+    build: ./user-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/user_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: mouad3at3at
+      APP_JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    networks:
+      - app-network
+
+  screen-service:
+    build: ./screen-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/screen_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: mouad3at3at
+      APP_JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    networks:
+      - app-network
+
+  ticket-service:
+    build: ./ticket-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      - postgres-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/ticket_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: mouad3at3at
+      APP_JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    networks:
+      - app-network
+
+  client-service:
+    build: ./client-service
+    ports:
+      - "8086:8086"          # port modifié pour éviter conflit avec ticket
+    depends_on:
+      - postgres-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/client_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: mouad3at3at
+      APP_JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    networks:
+      - app-network
+
+  assignment-service:
+    build: ./assignment-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      - postgres-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/assignment_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: mouad3at3at
+      APP_JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    networks:
+      - app-network
+
+  dashboard-service:
+    build: ./dashboard-service
+    ports:
+      - "8085:8085"
+    environment:
+      SERVICES_SCREEN_URL: http://screen-service:8082
+      SERVICES_TICKET_URL: http://ticket-service:8083
+      SERVICES_CLIENT_URL: http://client-service:8086
+      SERVICES_ASSIGNMENT_URL: http://assignment-service:8084
+      APP_JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    networks:
+      - app-network
+
+  location-service:
+    build: ./location-service
+    ports:
+      - "8088:8088"
+    depends_on:
+      - postgres-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/location_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: mouad3at3at
+      OSM_NOMINATIM_URL: https://nominatim.openstreetmap.org
+      APP_JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    networks:
+      - app-network
+
+  gateway-service:
+    build: ./api-gateway
+    ports:
+      - "8090:8090"
+    depends_on:
+      - auth-service
+      - user-service
+      - screen-service
+      - ticket-service
+      - client-service
+      - assignment-service
+      - dashboard-service
+      - location-service
+    environment:
+      SPRING_CLOUD_COMPATIBILITY_VERIFIER_ENABLED: "false"
+    networks:
+      - app-network
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - gateway-service
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   sgepd-db-data:

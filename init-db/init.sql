@@ -3,3 +3,5 @@ CREATE DATABASE user_db;
 CREATE DATABASE ticket_db;
 CREATE DATABASE screen_db;
 CREATE DATABASE client_db;
+CREATE DATABASE location_db;
+CREATE DATABASE assignment_db;
