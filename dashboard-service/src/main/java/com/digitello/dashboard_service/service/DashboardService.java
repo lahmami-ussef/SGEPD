@@ -25,13 +25,13 @@ public class DashboardService {
     @Value("${services.screen-url:http://localhost:8082}")
     private String screenServiceUrl;
 
-    @Value("${services.ticket-url:http://localhost:8083}")
+    @Value("${services.ticket-url:http://localhost:8084}")
     private String ticketServiceUrl;
 
     @Value("${services.client-url:http://localhost:8083}")
     private String clientServiceUrl;
 
-    @Value("${services.assignment-url:http://localhost:8084}")
+    @Value("${services.assignment-url:http://localhost:8087}")
     private String assignmentServiceUrl;
 
     public DashboardStatsResponse getDashboardStats(String authHeader) {

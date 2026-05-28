@@ -74,6 +74,10 @@ public class AuthService implements CommandLineRunner {
         return response;
     }
 
+    private String getSystemToken() {
+        return jwtUtil.generateToken("system", "ADMIN");
+    }
+
     public Object register(RegisterRequest request) {
         User user = User.builder()
                 .username(request.getUsername().toLowerCase().trim())
@@ -87,6 +91,7 @@ public class AuthService implements CommandLineRunner {
         try {
             webClientBuilder.build().post()
                     .uri("http://localhost:8085/api/users")
+                    .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + getSystemToken())
                     .bodyValue(Map.of("username", savedUser.getUsername(), "fullName", savedUser.getUsername(), "email", savedUser.getEmail(), "role", savedUser.getRole().name()))
                     .retrieve().bodyToMono(Void.class).block();
         } catch (Exception e) {
@@ -122,6 +127,7 @@ public class AuthService implements CommandLineRunner {
         try {
             webClientBuilder.build().delete()
                     .uri("http://localhost:8085/api/users/username/" + username)
+                    .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + getSystemToken())
                     .retrieve()
                     .bodyToMono(Void.class)
                     .timeout(java.time.Duration.ofSeconds(5))
@@ -142,6 +148,7 @@ public class AuthService implements CommandLineRunner {
         try {
             webClientBuilder.build().put()
                     .uri("http://localhost:8085/api/users/username/" + user.getUsername() + "/role?role=" + role)
+                    .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + getSystemToken())
                     .retrieve()
                     .bodyToMono(Void.class)
                     .timeout(java.time.Duration.ofSeconds(5))
@@ -166,6 +173,7 @@ public class AuthService implements CommandLineRunner {
         try {
             webClientBuilder.build().delete()
                     .uri("http://localhost:8085/api/users/username/" + username)
+                    .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + getSystemToken())
                     .retrieve()
                     .bodyToMono(Void.class)
                     .timeout(java.time.Duration.ofSeconds(5))

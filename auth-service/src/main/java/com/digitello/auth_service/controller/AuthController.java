@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.digitello.auth_service.entity.User;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Contrôleur gérant les requêtes d'authentification (Login, Inscription).

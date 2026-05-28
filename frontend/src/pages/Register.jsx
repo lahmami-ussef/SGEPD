@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShieldCheck, User, Lock, Mail, Tag } from 'lucide-react';
+import { User, Lock, Mail, Tag, ArrowLeft, CheckCircle2, ShieldAlert } from 'lucide-react';
 import api from '../api';
 
 const Register = () => {
@@ -11,108 +11,203 @@ const Register = () => {
   const [role, setRole] = useState('CLIENT');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) navigate('/dashboard');
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
     try {
-      const res = await api.post('/auth/register', { username, password, email, role });
-      setMessage("Inscription réussie. Votre compte sera activé après validation administrateur.");
+      await api.post('/api/auth/register', { username, password, email, role });
+      setMessage("Inscription réussie. Votre compte sera activé après validation par un administrateur.");
       setError('');
+      setTimeout(() => navigate('/login'), 4000);
     } catch (err) {
-      setError("Erreur lors de l'inscription.");
-      setMessage('');
+      setError("Une erreur est survenue lors de l'inscription. L'identifiant est peut-être déjà pris.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
-        className="w-full max-w-3xl flex rounded-2xl overflow-hidden shadow-lg"
-      >
-        <div className="w-56 flex-shrink-0 bg-emerald-600 flex flex-col items-center justify-center gap-4 px-6 py-10">
-          <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
-            <ShieldCheck size={28} className="text-white" />
-          </div>
-          <h1 className="text-white text-xl font-semibold tracking-wide">SGEPD</h1>
+    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-[#090d16] relative overflow-hidden select-none">
+      {/* Decorative premium ambient glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 left-1/3 w-[350px] h-[350px] bg-slate-500/5 rounded-full blur-[100px] pointer-events-none" />
+
+      <div className="relative z-10 w-full max-w-[440px]">
+        {/* Headings */}
+        <div className="text-center mb-8">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+            className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-slate-950 font-extrabold text-xl mb-4 shadow-lg shadow-emerald-500/10"
+          >
+            D
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="text-2xl font-bold tracking-tight text-white"
+          >
+            Créer un compte SGEPD
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+            className="text-sm text-slate-400 mt-1"
+          >
+            Rejoignez notre réseau d'écrans publicitaires
+          </motion.p>
         </div>
 
-        <div className="flex-1 bg-white flex flex-col justify-center px-8 py-10">
-          <h2 className="text-lg font-semibold text-slate-800 mb-1">Inscription</h2>
-
-          {message && <p className="text-emerald-500 text-sm mb-4">{message}</p>}
-          {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-slate-500">Utilisateur</label>
-              <div className="relative">
-                <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600" />
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 text-sm rounded-lg border border-slate-200 bg-slate-50 focus:border-emerald-500 focus:ring-2 outline-none transition-all"
-                  required
-                />
+        {/* Glassmorphic Form Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="glass-panel p-8 rounded-2xl shadow-2xl shadow-black/40"
+        >
+          {message ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex flex-col items-center text-center p-4 space-y-4"
+            >
+              <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                <CheckCircle2 size={28} />
               </div>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-slate-500">Email</label>
-              <div className="relative">
-                <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 text-sm rounded-lg border border-slate-200 bg-slate-50 focus:border-emerald-500 focus:ring-2 outline-none transition-all"
-                  required
-                />
+              <div className="space-y-2">
+                <h3 className="text-lg font-bold text-white">Demande enregistrée !</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  {message}
+                </p>
               </div>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-slate-500">Mot de passe</label>
-              <div className="relative">
-                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 text-sm rounded-lg border border-slate-200 bg-slate-50 focus:border-emerald-500 focus:ring-2 outline-none transition-all"
-                  required
-                />
+              <p className="text-[10px] text-slate-500 animate-pulse">
+                Redirection automatique vers la connexion...
+              </p>
+            </motion.div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Username Field */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Identifiant</label>
+                <div className="relative">
+                  <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Nom d'utilisateur souhaité"
+                    required
+                    className="w-full h-12 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-xl text-white placeholder-slate-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 outline-none transition-all duration-200 text-sm font-medium"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-slate-500">Rôle</label>
-              <div className="relative">
-                <Tag size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600" />
-                <select 
-                  value={role} 
-                  onChange={(e) => setRole(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 text-sm rounded-lg border border-slate-200 bg-slate-50 focus:border-emerald-500 focus:ring-2 outline-none transition-all"
+              {/* Email Field */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Adresse e-mail</label>
+                <div className="relative">
+                  <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="nom@entreprise.com"
+                    required
+                    className="w-full h-12 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-xl text-white placeholder-slate-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 outline-none transition-all duration-200 text-sm font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* Password Field */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Mot de passe</label>
+                <div className="relative">
+                  <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="w-full h-12 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-xl text-white placeholder-slate-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 outline-none transition-all duration-200 text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Role Field */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Type de compte</label>
+                <div className="relative">
+                  <Tag size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                  <select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="w-full h-12 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-xl text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 outline-none transition-all duration-200 text-sm font-medium appearance-none cursor-pointer"
+                  >
+                    <option value="CLIENT" className="bg-[#0f172a] text-white">Client / Partenaire</option>
+                    <option value="TECHNICIEN" className="bg-[#0f172a] text-white">Technicien de maintenance</option>
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-400 w-0 h-0" />
+                </div>
+              </div>
+
+              {/* Error Message Section */}
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex items-start gap-3 p-4 bg-rose-500/5 border border-rose-500/10 rounded-xl"
                 >
-                    <option value="CLIENT">Client</option>
-                    <option value="TECHNICIEN">Technicien</option>
-                </select>
-              </div>
-            </div>
+                  <ShieldAlert size={18} className="text-rose-500 shrink-0 mt-0.5" />
+                  <p className="text-xs font-medium text-rose-300 leading-normal">{error}</p>
+                </motion.div>
+              )}
 
-            <button type="submit" className="flex items-center justify-center w-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium py-2.5 rounded-lg transition-colors mt-2">
-              S'inscrire
-            </button>
-          </form>
+              {/* Submit Button */}
+              <motion.button
+                whileHover={{ y: -1 }}
+                whileTap={{ y: 1 }}
+                type="submit"
+                disabled={loading}
+                className="w-full h-12 bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-800 text-slate-950 font-bold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 hover:shadow-emerald-400/15 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-slate-950/20 border-t-slate-950 rounded-full animate-spin" />
+                ) : (
+                  <span>Demander mon accès</span>
+                )}
+              </motion.button>
 
-          <p className="text-center text-sm text-slate-500 mt-4">
-             Déjà un compte ? <Link to="/login" className="text-emerald-600">Se connecter</Link>
-          </p>
-        </div>
-      </motion.div>
+              {/* Back to Login */}
+              <button
+                type="button"
+                onClick={() => navigate('/login')}
+                className="w-full h-12 bg-transparent border border-white/5 hover:border-white/10 text-slate-300 hover:text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <ArrowLeft size={16} />
+                <span>Retour à la connexion</span>
+              </button>
+            </form>
+          )}
+        </motion.div>
+
+        {/* Footer */}
+        <p className="text-center text-slate-600 text-xs font-medium mt-8">
+          © 2026 Digitello SGEPD • Tous droits réservés
+        </p>
+      </div>
     </div>
   );
 };

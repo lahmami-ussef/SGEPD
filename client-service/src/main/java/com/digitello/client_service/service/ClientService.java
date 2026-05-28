@@ -24,7 +24,7 @@ public class ClientService {
     private final ClientRepository clientRepository;
     private final RestTemplate restTemplate;
 
-    @Value("${services.assignment-url:http://localhost:8084}")
+    @Value("${services.assignment-url:http://localhost:8087}")
     private String assignmentServiceUrl;
 
     @Transactional

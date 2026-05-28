@@ -6,6 +6,7 @@ import com.digitello.location_service.repository.LocationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,19 +36,33 @@ public class LocationService {
     }
 
     public LocationResponse create(LocationRequest request) {
-        Location location = Location.builder()
-                .screenId(request.getScreenId())
-                .city(request.getCity())
-                .address(request.getAddress())
-                .latitude(request.getLatitude())
-                .longitude(request.getLongitude())
-                .country(request.getCountry())
-                .postalCode(request.getPostalCode())
-                .region(request.getRegion())
-                .build();
+    // ✅ Si une localisation existe déjà pour cet écran, on la met à jour
+    Optional<Location> existing = locationRepository.findByScreenId(request.getScreenId());
+    if (existing.isPresent()) {
+        Location location = existing.get();
+        location.setCity(request.getCity());
+        location.setAddress(request.getAddress());
+        location.setLatitude(request.getLatitude());
+        location.setLongitude(request.getLongitude());
+        location.setCountry(request.getCountry());
+        location.setPostalCode(request.getPostalCode());
+        location.setRegion(request.getRegion());
         return LocationResponse.fromEntity(locationRepository.save(location));
     }
 
+    // Sinon on crée une nouvelle
+    Location location = Location.builder()
+            .screenId(request.getScreenId())
+            .city(request.getCity())
+            .address(request.getAddress())
+            .latitude(request.getLatitude())
+            .longitude(request.getLongitude())
+            .country(request.getCountry())
+            .postalCode(request.getPostalCode())
+            .region(request.getRegion())
+            .build();
+    return LocationResponse.fromEntity(locationRepository.save(location));
+}
     public LocationResponse createWithGeocoding(String address, Long screenId) {
         GeocodingResponse geo = geocodingService.geocode(address);
         Location location = Location.builder()

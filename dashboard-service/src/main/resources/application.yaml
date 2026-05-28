@@ -1,5 +1,5 @@
 server:
-  port: 8085
+  port: 8086
 
 spring:
   application:
@@ -10,6 +10,6 @@ jwt:
 
 services:
   screen-url: http://localhost:8082
-  ticket-url: http://localhost:8083
+  ticket-url: http://localhost:8084
   client-url: http://localhost:8083
-  assignment-url: http://localhost:8084
+  assignment-url: http://localhost:8087

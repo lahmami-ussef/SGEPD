@@ -5,6 +5,7 @@ import com.digitello.assignment_service.entity.Assignment;
 import com.digitello.assignment_service.repository.AssignmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,12 +30,10 @@ public class AssignmentService {
     }
 
     public AssignmentResponse create(AssignmentRequest request) {
-        // Vérification des dates
         if (request.getEndDate().isBefore(request.getStartDate())) {
             throw new RuntimeException("La date de fin doit être après la date de début");
         }
 
-        // Détection des conflits
         List<Assignment> conflicts = assignmentRepository.findConflicts(
                 request.getScreenId(),
                 request.getStartDate(),
@@ -42,7 +41,11 @@ public class AssignmentService {
         );
 
         if (!conflicts.isEmpty()) {
-            throw new RuntimeException("Conflit détecté : cet écran est déjà affecté sur cette période");
+            throw new RuntimeException(
+                "Conflit détecté : cet écran est déjà affecté du " +
+                conflicts.get(0).getStartDate() + " au " +
+                conflicts.get(0).getEndDate()
+            );
         }
 
         Assignment assignment = Assignment.builder()
@@ -104,9 +107,6 @@ public class AssignmentService {
     }
 
     public boolean checkIfClientHasActiveAssignments(Long clientId) {
-    // Exemple : Vérifier dans le repository si des assignations ACTIVES ou FUTURES existent
-    // return assignmentRepository.existsByClientIdAndStatusIn(clientId, Arrays.asList("ACTIF", "FUTUR"));
-    return assignmentRepository.existsByClientId(clientId); // Version simplifiée
-}
-
+        return assignmentRepository.existsByClientId(clientId);
+    }
 }

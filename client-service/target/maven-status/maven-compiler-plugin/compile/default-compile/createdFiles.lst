@@ -2,6 +2,7 @@ com\digitello\client_service\dto\ClientResponse.class
 com\digitello\client_service\config\SecurityConfig.class
 com\digitello\client_service\entity\Client.class
 com\digitello\client_service\entity\Client$ClientBuilder.class
+com\digitello\client_service\config\AppConfig.class
 com\digitello\client_service\service\ClientService.class
 com\digitello\client_service\dto\ClientRequest.class
 com\digitello\client_service\controller\ClientController.class

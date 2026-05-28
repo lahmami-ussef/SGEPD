@@ -35,32 +35,46 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
         return ((exchange, chain) -> {
             String path = exchange.getRequest().getURI().getPath();
             System.out.println("🌐 Gateway reçoit une requête sur : " + path);
-            
+
+            if (exchange.getRequest().getMethod().name().equals("OPTIONS")) {
+                System.out.println("✅ Preflight OPTIONS autorisé");
+                return chain.filter(exchange);
+            }
+
             if (validator.isSecured.test(exchange.getRequest())) {
                 System.out.println("🛡️ Route SÉCURISÉE détectée");
-                // Check if missing authorization header
+
                 if (!exchange.getRequest().getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
                     System.out.println("⚠️ Header Authorization MANQUANT");
                     return onError(exchange.getResponse(), "Missing Authorization header", HttpStatus.UNAUTHORIZED);
                 }
 
                 List<String> authHeaders = exchange.getRequest().getHeaders().get(HttpHeaders.AUTHORIZATION);
-                String authHeader = (authHeaders != null && !authHeaders.isEmpty()) ? authHeaders.get(0) : null;
-                if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                    authHeader = authHeader.substring(7);
+
+                // ✅ bearerToken = "Bearer eyJ..." (valeur complète)
+                String bearerToken = (authHeaders != null && !authHeaders.isEmpty()) ? authHeaders.get(0) : null;
+
+                // ✅ tokenOnly = "eyJ..." (sans le préfixe Bearer)
+                String tokenOnly = bearerToken;
+                if (tokenOnly != null && tokenOnly.startsWith("Bearer ")) {
+                    tokenOnly = tokenOnly.substring(7);
                 }
 
                 try {
-                    jwtUtil.validateToken(authHeader);
+                    jwtUtil.validateToken(tokenOnly);
 
-                    Claims claims = jwtUtil.getClaims(authHeader);
+                    Claims claims = jwtUtil.getClaims(tokenOnly);
                     String username = claims.getSubject();
                     String role = claims.get("role", String.class);
-                    // Extract custom fields if necessary
 
+                    System.out.println("✅ Token valide pour : " + username + " | role : " + role);
+                    System.out.println("📤 Forwarding Authorization : " + (bearerToken != null ? bearerToken.substring(0, Math.min(30, bearerToken.length())) + "..." : "null"));
+
+                    // ✅ bearerToken est bien défini ici
                     ServerHttpRequest request = exchange.getRequest().mutate()
                             .header("X-Username", username)
                             .header("X-User-Role", role)
+                            .header(HttpHeaders.AUTHORIZATION, bearerToken)
                             .build();
 
                     return chain.filter(exchange.mutate().request(request).build());
@@ -82,7 +96,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
         String body = "{\"message\":\"" + errCode + "\"}";
         byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
         DataBuffer buffer = response.bufferFactory().wrap(bytes);
-        return response.writeWith(Mono.just(buffer));
+        return response.writeWith(Mono.just(buffer).cast(DataBuffer.class));
     }
 
     public static class Config {

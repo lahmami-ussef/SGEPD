@@ -11,6 +11,7 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     List<Assignment> findByScreenId(Long screenId);
     List<Assignment> findByClientId(Long clientId);
     List<Assignment> findByStatus(Assignment.Status status);
+    boolean existsByClientId(Long clientId);
 
     @Query("SELECT a FROM Assignment a WHERE a.screenId = :screenId " +
            "AND a.status = 'ACTIF' " +

@@ -5,6 +5,7 @@ import com.digitello.screen_service.entity.Screen;
 import com.digitello.screen_service.repository.ScreenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +26,18 @@ public class ScreenService {
         Screen screen = screenRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Écran non trouvé avec id: " + id));
         return ScreenResponse.fromEntity(screen);
+    }
+
+    // ✅ updateStatus — accepte String et convertit en enum
+    public ScreenResponse updateStatus(Long id, String status) {
+        Screen screen = screenRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Écran non trouvé avec id: " + id));
+        try {
+            screen.setStatus(Screen.Status.valueOf(status));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Statut invalide : " + status + ". Valeurs acceptées : ACTIF, EN_PANNE, EN_MAINTENANCE");
+        }
+        return ScreenResponse.fromEntity(screenRepository.save(screen));
     }
 
     public ScreenResponse create(ScreenRequest request) {
@@ -97,5 +110,10 @@ public class ScreenService {
                 .stream()
                 .map(ScreenResponse::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    // ✅ helper privé si ScreenResponse.fromEntity n'existe pas
+    private ScreenResponse mapToResponse(Screen screen) {
+        return ScreenResponse.fromEntity(screen);
     }
 }

@@ -38,6 +38,7 @@ public class User {
 
     // Permet de désactiver un compte si nécessaire
     @Column(nullable = false)
+    @Builder.Default
     private boolean enabled = true;
 
     @Column(name = "created_at")

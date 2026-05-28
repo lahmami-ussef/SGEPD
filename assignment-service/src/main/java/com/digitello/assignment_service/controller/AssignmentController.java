@@ -5,14 +5,13 @@ import com.digitello.assignment_service.service.AssignmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/assignments")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class AssignmentController {
 
     private final AssignmentService assignmentService;
@@ -28,20 +27,22 @@ public class AssignmentController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AssignmentResponse> create(@Valid @RequestBody AssignmentRequest request) {
-        return ResponseEntity.status(201).body(assignmentService.create(request));
+        try {
+            return ResponseEntity.status(201).body(assignmentService.create(request));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<AssignmentResponse> update(@PathVariable Long id,
-                                                      @Valid @RequestBody AssignmentRequest request) {
+    public ResponseEntity<AssignmentResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody AssignmentRequest request) {
         return ResponseEntity.ok(assignmentService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         assignmentService.delete(id);
         return ResponseEntity.noContent().build();
@@ -63,10 +64,8 @@ public class AssignmentController {
         return ResponseEntity.ok(assignmentService.getExpiringSoon(days));
     }
 
-    // cette route permet de verifier si un client a des assignments actifs
     @GetMapping("/client/{clientId}/has-active")
-public ResponseEntity<Boolean> hasActiveAssignments(@PathVariable Long clientId) {
-    boolean hasActive = assignmentService.checkIfClientHasActiveAssignments(clientId);
-    return ResponseEntity.ok(hasActive);
-}
+    public ResponseEntity<Boolean> hasActiveAssignments(@PathVariable Long clientId) {
+        return ResponseEntity.ok(assignmentService.checkIfClientHasActiveAssignments(clientId));
+    }
 }

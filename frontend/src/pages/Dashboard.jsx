@@ -2,44 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import api from '../api';
-import { 
-  Tv, 
-  AlertCircle, 
-  Building2, 
-  Activity, 
-  RefreshCw, 
-  Plus, 
-  Ticket as TicketIcon, 
-  CheckCircle2, 
-  ChevronRight, 
-  AlertTriangle,
+import {
+  Tv,
+  AlertCircle,
+  Building2,
+  Activity,
+  RefreshCw,
+  Plus,
+  Ticket as TicketIcon,
+  TrendingUp,
+  TrendingDown,
+  ChevronRight,
   ShieldAlert,
-  Server,
   Wrench
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  
+
   // Auth details
   const savedUser = localStorage.getItem('user');
   const user = savedUser ? JSON.parse(savedUser) : null;
   const userRole = user?.role || 'CLIENT';
-  const username = user?.username || 'Utilisateur';
 
   // API Data States
-  const [screens, setScreens] = useState([]);
-  const [tickets, setTickets] = useState([]);
-  const [clients, setClients] = useState([]);
-  
+  const [data, setData] = useState(null);
+
   // UI States
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
-  const [showNotifications, setShowNotifications] = useState(false);
 
-  // Fetch all statistics dynamically
+  // Fetch consolidated dashboard data from dashboard-service
   const fetchDashboardData = async (isManualRefresh = false) => {
     if (isManualRefresh) {
       setRefreshing(true);
@@ -49,22 +44,11 @@ const Dashboard = () => {
     setError('');
 
     try {
-      // 1. Fetch screens (used by all roles)
-      const screensRes = await api.get('/screens');
-      setScreens(screensRes.data || []);
-
-      // 2. Fetch tickets (used by all roles)
-      const ticketsRes = await api.get('/tickets');
-      setTickets(ticketsRes.data || []);
-
-      // 3. Fetch clients (Admin only)
-      if (userRole === 'ADMIN') {
-        const clientsRes = await api.get('/clients');
-        setClients(clientsRes.data || []);
-      }
+      const res = await api.get('/api/dashboard');
+      setData(res.data);
     } catch (err) {
       console.error("Error loading dashboard metrics", err);
-      setError("Impossible de charger les données réelles du tableau de bord. Veuillez vérifier que les microservices backend sont démarrés.");
+      setError("Impossible de charger les données consolidées du tableau de bord. Veuillez vérifier que le service dashboard-service (Port 8086) est démarré.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -75,126 +59,78 @@ const Dashboard = () => {
     fetchDashboardData();
   }, [userRole]);
 
-  // Derived Statistics based on role
-  const totalScreens = screens.length;
-  const activeScreens = screens.filter(s => s.status === 'ACTIF').length;
-  const offlineScreens = screens.filter(s => s.status === 'EN_PANNE').length;
-  const maintenanceScreens = screens.filter(s => s.status === 'EN_MAINTENANCE').length;
-  
-  const totalTickets = tickets.length;
-  const openTickets = tickets.filter(t => t.status !== 'RESOLU' && t.status !== 'CLOTURE').length;
-  const criticalTickets = tickets.filter(t => t.priority === 'URGENT' || t.priority === 'HAUTE').length;
-  const resolvedTickets = tickets.filter(t => t.status === 'RESOLU' || t.status === 'CLOTURE').length;
+  // Safe data extraction
+  const kpis = data?.kpis || [];
+  const activity = data?.activity || [];
+  const screenStatuses = data?.screenStatuses || [];
+  const recentTickets = data?.recentTickets || [];
+  const topClients = data?.topClients || [];
 
-  const urgentAlertsCount = tickets.filter(t => t.priority === 'URGENT' && t.status !== 'RESOLU').length;
+  // Filter urgent tickets count
+  const urgentTicketsCount = recentTickets.filter(t => t.status === 'Urgent').length;
 
-  // Custom UI Renderers per role
-  const renderDashboardHeader = () => {
-    const subtitle = {
-      ADMIN: "Console globale de supervision de votre parc d'affichage et de vos clients.",
-      CLIENT: "Suivi en temps réel de vos terminaux d'affichage publicitaire et demandes de support.",
-      TECHNICIEN: "Flux de travail de maintenance et gestion opérationnelle des pannes d'écrans.",
-    }[userRole] || "Tableau de bord de supervision Digitello.";
-
-    return (
+  return (
+    <Layout>
+      {/* Dynamic Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-            Tableau de bord
-            {userRole === 'ADMIN' && <span className="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Vue Administrateur</span>}
-            {userRole === 'CLIENT' && <span className="bg-blue-100 text-blue-800 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Espace Client</span>}
-            {userRole === 'TECHNICIEN' && <span className="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Espace Technicien</span>}
+          <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-3">
+            Tableau de bord de supervision
+            {userRole === 'ADMIN' && <span className="bg-emerald-500/10 text-emerald-400 text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/20 font-bold uppercase tracking-wider">Administrateur</span>}
+            {userRole === 'CLIENT' && <span className="bg-blue-500/10 text-blue-400 text-[10px] px-2 py-0.5 rounded-full border border-blue-500/20 font-bold uppercase tracking-wider">Espace Client</span>}
+            {userRole === 'TECHNICIEN' && <span className="bg-amber-500/10 text-amber-400 text-[10px] px-2 py-0.5 rounded-full border border-amber-500/20 font-bold uppercase tracking-wider">Technicien</span>}
           </h1>
-          <p className="text-slate-500 font-medium mt-1">{subtitle}</p>
+          <p className="text-xs text-slate-400 mt-1">
+            {userRole === 'ADMIN' && "Console globale de supervision de votre parc d'affichage et de vos clients."}
+            {userRole === 'CLIENT' && "Suivi en temps réel de vos terminaux d'affichage publicitaire et demandes de support."}
+            {userRole === 'TECHNICIEN' && "Flux de travail de maintenance et gestion opérationnelle des pannes d'écrans."}
+          </p>
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
-          {/* Notifications Toggle */}
-          <button 
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 font-bold hover:bg-slate-50 transition-all shadow-sm active:scale-95 cursor-pointer relative"
-          >
-            🔔 {urgentAlertsCount > 0 && <span className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-black">{urgentAlertsCount}</span>}
-            Notifications
-          </button>
-          
-          <button 
-            onClick={() => fetchDashboardData(true)} 
+          <button
+            onClick={() => fetchDashboardData(true)}
             disabled={refreshing}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 font-bold hover:bg-slate-50 transition-all shadow-sm active:scale-95 cursor-pointer"
+            className="flex items-center justify-center gap-2 h-10 px-4 bg-slate-900 border border-white/5 hover:border-white/10 rounded-xl text-slate-300 hover:text-white font-semibold transition-all cursor-pointer text-xs"
           >
-            <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
-            Actualiser
+            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+            <span>Actualiser</span>
           </button>
 
           {userRole === 'ADMIN' && (
-            <button 
-              onClick={() => navigate('/screens')} 
-              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-600/10 active:scale-95 cursor-pointer"
+            <button
+              onClick={() => navigate('/screens')}
+              className="flex items-center justify-center gap-2 h-10 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl font-bold transition-all shadow-md shadow-emerald-500/10 cursor-pointer text-xs"
             >
-              <Plus size={18} />
-              Nouveau terminal
+              <Plus size={16} />
+              <span>Nouveau terminal</span>
             </button>
           )}
         </div>
       </div>
-    );
-  };
 
-  const renderAdminKPIs = () => [
-    { label: 'Total Écrans', value: totalScreens, desc: `${activeScreens} opérationnels`, trend: 'up', Icon: Tv, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Écrans en Panne', value: offlineScreens, desc: `${maintenanceScreens} en maintenance`, trend: 'down', Icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50' },
-    { label: 'Clients Actifs', value: clients.length, desc: 'Entreprises enregistrées', trend: 'up', Icon: Building2, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Tickets Ouverts', value: openTickets, desc: `${criticalTickets} critiques`, trend: 'down', Icon: TicketIcon, color: 'text-amber-600', bg: 'bg-amber-50' },
-  ];
-
-  const renderClientKPIs = () => [
-    { label: 'Mes Terminaux', value: totalScreens, desc: `${activeScreens} en ligne`, trend: 'up', Icon: Tv, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Écrans Actifs', value: activeScreens, desc: `${offlineScreens} hors ligne`, trend: 'up', Icon: Activity, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Mes Tickets', value: totalTickets, desc: `${openTickets} en cours de traitement`, trend: 'down', Icon: TicketIcon, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-    { label: 'Demandes Résolues', value: resolvedTickets, desc: 'Tickets clôturés', trend: 'up', Icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  ];
-
-  const renderTechnicianKPIs = () => [
-    { label: 'Tickets Assignés', value: openTickets, desc: 'Interventions requises', trend: 'down', Icon: Wrench, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { label: 'Tickets Critiques', value: criticalTickets, desc: 'Haute priorité', trend: 'down', Icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50' },
-    { label: 'En Maintenance', value: maintenanceScreens, desc: 'Écrans à dépanner', trend: 'up', Icon: Server, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-    { label: 'Interventions Résolues', value: resolvedTickets, desc: 'Résolus au total', trend: 'up', Icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  ];
-
-  const getKPIs = () => {
-    if (userRole === 'ADMIN') return renderAdminKPIs();
-    if (userRole === 'CLIENT') return renderClientKPIs();
-    return renderTechnicianKPIs();
-  };
-
-  return (
-    <Layout>
-      {/* Dynamic Header */}
-      {renderDashboardHeader()}
-
-      {/* Dynamic Alerts/Notifications area */}
+      {/* Critical Incidents Warning */}
       <AnimatePresence>
-        {(showNotifications || urgentAlertsCount > 0) && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="mb-8 overflow-hidden"
+        {urgentTicketsCount > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="mb-8"
           >
-            <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center justify-between shadow-sm">
-              <div className="flex items-center gap-3 text-red-800">
-                <ShieldAlert size={22} className="text-red-600 flex-shrink-0" />
+            <div className="p-4 bg-rose-500/5 border border-rose-500/10 rounded-2xl flex items-center justify-between shadow-lg">
+              <div className="flex items-center gap-3 text-rose-300">
+                <ShieldAlert size={20} className="text-rose-500 shrink-0" />
                 <div>
-                  <h4 className="font-bold text-sm">Alertes de sécurité / pannes critiques détectées</h4>
-                  <p className="text-xs text-red-600 font-medium">Il y a actuellement {urgentAlertsCount} ticket(s) urgent(s) en attente d'intervention immédiate.</p>
+                  <h4 className="font-bold text-xs text-white">Anomalies critiques actives</h4>
+                  <p className="text-[11px] text-rose-300/80 mt-0.5">Il y a actuellement {urgentTicketsCount} incident(s) urgent(s) nécessitant une intervention immédiate.</p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => navigate('/tickets')}
-                className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer"
+                className="h-8 px-3 bg-rose-500 hover:bg-rose-400 text-slate-950 rounded-lg text-xs font-bold transition-all cursor-pointer"
               >
-                Gérer les tickets
+                Gérer les incidents
               </button>
             </div>
           </motion.div>
@@ -203,9 +139,9 @@ const Dashboard = () => {
 
       {/* Global Error Banner */}
       {error && (
-        <div className="mb-8 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl flex items-center gap-3 shadow-sm font-medium text-sm">
-          <AlertCircle size={18} className="text-amber-600" />
-          {error}
+        <div className="mb-8 p-4 bg-amber-500/5 border border-amber-500/10 text-amber-300 rounded-2xl flex items-center gap-3 shadow-md text-xs font-medium">
+          <AlertCircle size={16} className="text-amber-500 shrink-0" />
+          <span>{error}</span>
         </div>
       )}
 
@@ -215,270 +151,366 @@ const Dashboard = () => {
           {/* KPI grid skeleton */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map(n => (
-              <div key={n} className="bg-white p-6 rounded-2xl border border-slate-200 h-32 flex flex-col justify-between">
-                <div className="w-1/2 h-4 bg-slate-100 rounded"></div>
-                <div className="w-1/3 h-8 bg-slate-200 rounded"></div>
-              </div>
+              <div key={n} className="bg-slate-900/50 p-6 rounded-2xl border border-white/5 h-28 flex flex-col justify-between" />
             ))}
           </div>
 
-          {/* Dynamic grid skeleton */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[1, 2].map(n => (
-              <div key={n} className="bg-white p-6 rounded-2xl border border-slate-200 h-96">
-                <div className="w-1/3 h-6 bg-slate-200 rounded mb-6"></div>
-                <div className="space-y-4">
-                  {[1, 2, 3, 4, 5].map(x => (
-                    <div key={x} className="w-full h-10 bg-slate-100 rounded"></div>
-                  ))}
-                </div>
-              </div>
-            ))}
+          {/* Table & sidebar skeletons */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-slate-900/50 p-6 rounded-2xl border border-white/5 h-[340px]" />
+            <div className="bg-slate-900/50 p-6 rounded-2xl border border-white/5 h-[340px]" />
           </div>
         </div>
       ) : (
         <div className="space-y-8">
-          {/* KPI Cards Section */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {getKPIs().map((kpi, idx) => (
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: idx * 0.05 }}
-                key={kpi.label}
-                className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all flex justify-between items-center group relative overflow-hidden"
-              >
-                <div className="flex flex-col gap-1 z-10">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{kpi.label}</span>
-                  <h3 className="text-3xl font-black text-slate-800 leading-none my-1">{kpi.value}</h3>
-                  <span className="text-xs text-slate-400 font-medium">{kpi.desc}</span>
-                </div>
-                
-                <div className={`w-12 h-12 rounded-2xl ${kpi.bg} flex items-center justify-center z-10 transition-transform group-hover:scale-110`}>
-                  <kpi.Icon className={kpi.color} size={22} />
-                </div>
-                
-                {/* Decorative subtle background bubble */}
-                <div className={`absolute -right-4 -bottom-4 w-20 h-20 rounded-full opacity-10 ${kpi.bg}`}></div>
-              </motion.div>
-            ))}
+          {/* KPI Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {kpis.map((kpi, idx) => {
+              const Icon = {
+                'Écrans actifs': Tv,
+                'Tickets ouverts': TicketIcon,
+                'Clients actifs': Building2,
+                'Taux de dispo.': Activity
+              }[kpi.label] || Activity;
+
+              const colorClass = {
+                'Écrans actifs': 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+                'Tickets ouverts': 'text-rose-400 bg-rose-500/10 border-rose-500/20',
+                'Clients actifs': 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+                'Taux de dispo.': 'text-teal-400 bg-teal-500/10 border-teal-500/20'
+              }[kpi.label] || 'text-slate-400 bg-slate-500/10 border-slate-500/20';
+
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: idx * 0.05 }}
+                  key={kpi.label}
+                  className="bg-slate-900/60 p-6 rounded-2xl border border-white/5 shadow-md flex justify-between items-center group relative overflow-hidden"
+                >
+                  <div className="flex flex-col z-10 space-y-1">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{kpi.label}</span>
+                    <h3 className="text-2xl font-bold text-white tracking-tight leading-none">{kpi.value}</h3>
+                    <div className="flex items-center gap-1 text-[10px] text-slate-400 font-semibold pt-1">
+                      {kpi.trend === 'up' ? (
+                        <TrendingUp size={12} className="text-emerald-400" />
+                      ) : (
+                        <TrendingDown size={12} className="text-rose-400" />
+                      )}
+                      <span className={kpi.trend === 'up' ? 'text-emerald-400' : 'text-rose-400'}>{kpi.change}</span>
+                      <span className="text-slate-500">vs dernier mois</span>
+                    </div>
+                  </div>
+
+                  <div className={`w-10 h-10 rounded-xl border ${colorClass} flex items-center justify-center z-10 transition-transform group-hover:scale-105`}>
+                    <Icon size={18} />
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
 
-          {/* Dynamic Content Grid based on user Role */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            {/* Widget 1: Tickets Table (All Roles, but contents can differ) */}
-            <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between">
-              <div>
-                <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+          {/* Interactive Layout Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* COLUMN 1 & 2 (Main Graphs and Tables) */}
+            <div className="lg:col-span-2 space-y-6 flex flex-col justify-between">
+              
+              {/* Activity Weekly Chart */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.15 }}
+                className="bg-slate-900/60 border border-white/5 rounded-2xl shadow-lg p-6"
+              >
+                <div className="flex justify-between items-center mb-6">
                   <div>
-                    <h3 className="font-extrabold text-slate-800">Tickets récents</h3>
-                    <p className="text-xs text-slate-400 font-medium">Liste des dernières demandes et signalements</p>
+                    <h3 className="text-sm font-bold text-white">Activité opérationnelle</h3>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Fréquence journalière des rapports de dysfonctionnement résolus</p>
                   </div>
-                  <button 
-                    onClick={() => navigate('/tickets')}
-                    className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 cursor-pointer"
-                  >
-                    Voir tous <ChevronRight size={14} />
-                  </button>
+                  <span className="text-[9px] font-bold text-slate-400 bg-slate-850 border border-white/5 rounded-full px-2.5 py-1 flex items-center gap-1.5 uppercase">
+                    <Activity size={10} className="text-emerald-400" /> Charge système
+                  </span>
                 </div>
 
-                <div className="overflow-x-auto">
-                  {tickets.length === 0 ? (
-                    <div className="p-12 text-center text-slate-400 font-medium text-sm">
-                      Aucun ticket actif ou signalé.
+                <div className="h-40 flex items-end justify-between px-4 pb-2 border-b border-white/5 gap-3">
+                  {activity.map((bar, idx) => (
+                    <div key={idx} className="flex flex-col items-center flex-1 group relative">
+                      {/* Tooltip */}
+                      <div className="absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950 border border-white/10 text-white text-[9px] font-bold px-2 py-1 rounded shadow-xl pointer-events-none transform -translate-y-1 z-20">
+                        {bar.height}% Intensité
+                      </div>
+
+                      {/* Animated Column Bar */}
+                      <motion.div
+                        initial={{ height: 0 }}
+                        animate={{ height: `${bar.height}%` }}
+                        transition={{ duration: 0.6, delay: idx * 0.05, ease: 'easeOut' }}
+                        className={`w-full rounded-t-md transition-all ${
+                          bar.weekend
+                            ? 'bg-slate-800 group-hover:bg-slate-700'
+                            : 'bg-gradient-to-t from-emerald-600/85 to-emerald-400/90 group-hover:shadow-lg group-hover:shadow-emerald-500/10'
+                        }`}
+                        style={{ minHeight: bar.height > 0 ? '4px' : '0px' }}
+                      />
+
+                      {/* Day Label */}
+                      <span className="text-[10px] font-bold text-slate-500 mt-2 block">{bar.day}</span>
                     </div>
-                  ) : (
-                    <table className="w-full border-collapse text-left text-sm">
-                      <thead>
-                        <tr className="border-b border-slate-100">
-                          <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">ID</th>
-                          <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Description</th>
-                          <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Priorité</th>
-                          <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Statut</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {tickets.slice(0, 5).map(ticket => {
-                          const statusStyles = {
-                            OUVERT: { bg: 'bg-blue-50 border-blue-100 text-blue-700', label: 'Ouvert' },
-                            EN_COURS: { bg: 'bg-amber-50 border-amber-100 text-amber-700', label: 'En cours' },
-                            RESOLU: { bg: 'bg-emerald-50 border-emerald-100 text-emerald-700', label: 'Résolu' },
-                            CLOTURE: { bg: 'bg-slate-50 border-slate-100 text-slate-500', label: 'Clôturé' }
-                          }[ticket.status] || { bg: 'bg-slate-50 border-slate-100 text-slate-600', label: ticket.status };
+                  ))}
+                </div>
+              </motion.div>
 
-                          const priorityStyles = {
-                            URGENT: 'text-red-600 font-black',
-                            HAUTE: 'text-amber-600 font-bold',
-                            MOYENNE: 'text-blue-600 font-medium',
-                            BASSE: 'text-slate-400'
-                          }[ticket.priority] || 'text-slate-600';
+              {/* Recent Incident Tickets Grid */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+                className="bg-slate-900/60 border border-white/5 rounded-2xl shadow-lg overflow-hidden flex flex-col justify-between"
+              >
+                <div>
+                  <div className="p-5 border-b border-white/5 bg-slate-950/20 flex justify-between items-center">
+                    <div>
+                      <h3 className="text-sm font-bold text-white">Tickets d'incidents récents</h3>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Flux d'incidents techniques enregistrés en temps réel</p>
+                    </div>
+                    <button
+                      onClick={() => navigate('/tickets')}
+                      className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>Consulter tout</span>
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
 
-                          return (
-                            <tr key={ticket.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-all">
-                              <td className="p-4 font-bold text-slate-400">#TK-00{ticket.id}</td>
-                              <td className="p-4 font-medium text-slate-700 max-w-xs truncate">{ticket.description || 'Sans description'}</td>
-                              <td className="p-4"><span className={`text-xs ${priorityStyles}`}>{ticket.priority || 'Normal'}</span></td>
-                              <td className="p-4">
-                                <span className={`px-2.5 py-0.5 rounded-full border text-[10px] font-bold ${statusStyles.bg}`}>
-                                  {statusStyles.label}
+                  <div className="overflow-x-auto">
+                    {recentTickets.length === 0 ? (
+                      <div className="p-12 text-center text-slate-500 font-medium text-xs">
+                        Aucun ticket actif ou signalé.
+                      </div>
+                    ) : (
+                      <table className="w-full border-collapse text-left text-xs">
+                        <thead>
+                          <tr className="border-b border-white/5 bg-slate-950/40">
+                            <th className="px-6 py-3.5 font-bold text-slate-400 uppercase tracking-widest">ID</th>
+                            <th className="px-6 py-3.5 font-bold text-slate-400 uppercase tracking-widest">Description</th>
+                            <th className="px-6 py-3.5 font-bold text-slate-400 uppercase tracking-widest">Client</th>
+                            <th className="px-6 py-3.5 font-bold text-slate-400 uppercase tracking-widest">Priorité</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {recentTickets.map(ticket => (
+                            <tr key={ticket.id} className="border-b border-white/5 hover:bg-white/[0.01] transition-all">
+                              <td className="px-6 py-4 font-bold text-slate-400">#{ticket.id}</td>
+                              <td className="px-6 py-4 font-medium text-slate-200 max-w-xs truncate">{ticket.desc || 'Sans description'}</td>
+                              <td className="px-6 py-4 text-slate-400 font-medium">{ticket.client}</td>
+                              <td className="px-6 py-4">
+                                <span
+                                  className="px-2.5 py-0.5 rounded-full border text-[9px] font-bold"
+                                  style={{ backgroundColor: `${ticket.color}10`, color: ticket.color, borderColor: `${ticket.color}30` }}
+                                >
+                                  {ticket.status}
                                 </span>
                               </td>
                             </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  )}
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="p-4 border-t border-slate-50 text-center">
-                <span className="text-[11px] text-slate-400 font-medium">Flux dynamique synchronisé en temps réel avec ticket-service</span>
-              </div>
+                <div className="p-4 border-t border-white/5 text-center bg-slate-950/20">
+                  <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Données synchronisées avec dashboard-service</span>
+                </div>
+              </motion.div>
+
             </div>
 
-            {/* Widget 2: Role-dependent Panel */}
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between">
+            {/* COLUMN 3 (Sidebar widgets) */}
+            <div className="space-y-6">
               
-              {/* ADMIN ROLE: Client List */}
-              {userRole === 'ADMIN' && (
-                <>
-                  <div>
-                    <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                      <div>
-                        <h3 className="font-extrabold text-slate-800">Clients majeurs</h3>
-                        <p className="text-xs text-slate-400 font-medium">Derniers comptes entreprises créés</p>
+              {/* Screen Health Progress Status */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.25 }}
+                className="bg-slate-900/60 border border-white/5 rounded-2xl shadow-lg p-6"
+              >
+                <div className="mb-6">
+                  <h3 className="text-sm font-bold text-white">Disponibilité du parc</h3>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Taux de fonctionnement actuel des terminaux</p>
+                </div>
+
+                <div className="space-y-5">
+                  {screenStatuses.map((status, idx) => (
+                    <div key={idx} className="space-y-2">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-bold text-slate-300 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: status.color }} />
+                          {status.label}
+                        </span>
+                        <span className="text-slate-400 font-bold">
+                          {status.count} ({status.pct}%)
+                        </span>
                       </div>
-                      <button 
-                        onClick={() => navigate('/clients')}
-                        className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 cursor-pointer"
-                      >
-                        Gérer <ChevronRight size={14} />
-                      </button>
+                      
+                      {/* Premium progress bar */}
+                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${status.pct}%` }}
+                          transition={{ duration: 0.8, delay: idx * 0.1 }}
+                          className="h-full rounded-full"
+                          style={{ backgroundColor: status.color }}
+                        />
+                      </div>
                     </div>
+                  ))}
+                </div>
+              </motion.div>
 
-                    <div className="p-4">
-                      {clients.length === 0 ? (
-                        <div className="p-12 text-center text-slate-400 text-sm">
-                          Aucun client inscrit.
+              {/* Role-based Dynamic Widget */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
+                className="bg-slate-900/60 border border-white/5 rounded-2xl shadow-lg overflow-hidden flex flex-col justify-between"
+              >
+                {/* ADMIN: Top Clients */}
+                {userRole === 'ADMIN' && (
+                  <>
+                    <div>
+                      <div className="p-5 border-b border-white/5 bg-slate-950/20 flex justify-between items-center">
+                        <div>
+                          <h3 className="text-sm font-bold text-white">Clients d'affichage</h3>
+                          <p className="text-[11px] text-slate-400 mt-0.5">Comptes avec le parc le plus volumineux</p>
                         </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {clients.slice(0, 5).map(client => (
-                            <div key={client.id} className="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50/50 transition-all">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">
-                                  {client.raisonSociale?.slice(0, 2).toUpperCase() || 'CL'}
-                                </div>
-                                <div>
-                                  <h4 className="font-bold text-xs text-slate-700">{client.raisonSociale}</h4>
-                                  <p className="text-[10px] text-slate-400">{client.nomContact}</p>
-                                </div>
-                              </div>
-                              <span className="text-[10px] font-bold text-slate-400">{client.telephone || 'Non spécifié'}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="p-4 border-t border-slate-50 text-center">
-                    <span className="text-[11px] text-slate-400 font-medium">Flux connecté avec client-service</span>
-                  </div>
-                </>
-              )}
-
-              {/* CLIENT ROLE: Quick Actions & Connected Screens */}
-              {userRole === 'CLIENT' && (
-                <>
-                  <div>
-                    <div className="p-5 border-b border-slate-100 bg-slate-50/50">
-                      <h3 className="font-extrabold text-slate-800">Support & Assistance</h3>
-                      <p className="text-xs text-slate-400 font-medium">Actions rapides pour votre compte</p>
-                    </div>
-
-                    <div className="p-6 space-y-4">
-                      <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-2xl text-center">
-                        <h4 className="font-extrabold text-sm text-emerald-800 mb-1">Un écran rencontre un problème ?</h4>
-                        <p className="text-xs text-slate-500 mb-4">Signalez un dysfonctionnement matériel ou logiciel en quelques secondes.</p>
-                        <button 
-                          onClick={() => navigate('/tickets')}
-                          className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
+                        <button
+                          onClick={() => navigate('/clients')}
+                          className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
                         >
-                          Créer un Ticket d'incident
+                          <span>Gérer</span>
+                          <ChevronRight size={14} />
                         </button>
                       </div>
 
-                      <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl text-center">
-                        <h4 className="font-extrabold text-sm text-blue-800 mb-1">Vérifier vos écrans actifs</h4>
-                        <p className="text-xs text-slate-500 mb-4">Consultez l'état de diffusion en temps réel de vos terminaux.</p>
-                        <button 
-                          onClick={() => navigate('/screens')}
-                          className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
-                        >
-                          Voir mes écrans
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-4 border-t border-slate-50 text-center">
-                    <span className="text-[11px] text-slate-400 font-medium">Assistance client Digitello SGEPD</span>
-                  </div>
-                </>
-              )}
-
-              {/* TECHNICIAN ROLE: Priority Queue */}
-              {userRole === 'TECHNICIEN' && (
-                <>
-                  <div>
-                    <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                      <div>
-                        <h3 className="font-extrabold text-slate-800">File d'attente urgente</h3>
-                        <p className="text-xs text-slate-400 font-medium">Écrans en panne critique</p>
-                      </div>
-                      <span className="bg-red-100 text-red-800 text-[10px] px-2.5 py-0.5 rounded-full font-bold">
-                        {screens.filter(s => s.status === 'EN_PANNE').length} pannes
-                      </span>
-                    </div>
-
-                    <div className="p-4">
-                      {screens.filter(s => s.status === 'EN_PANNE').length === 0 ? (
-                        <div className="p-12 text-center text-slate-400 text-sm">
-                          Aucun écran en panne critique ! Félicitations.
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {screens.filter(s => s.status === 'EN_PANNE').slice(0, 5).map(screen => (
-                            <div key={screen.id} className="flex items-center justify-between p-3 border border-red-100 bg-red-50/20 rounded-xl hover:bg-red-50/45 transition-all">
+                      <div className="p-4 space-y-3">
+                        {topClients.length === 0 ? (
+                          <div className="p-12 text-center text-slate-500 text-xs">
+                            Aucun client actif.
+                          </div>
+                        ) : (
+                          topClients.map((client, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-3 border border-white/5 bg-slate-950/40 rounded-xl hover:bg-slate-900 transition-all cursor-pointer">
                               <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
-                                  <AlertTriangle size={18} />
+                                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">
+                                  {client.name.slice(0, 2).toUpperCase()}
                                 </div>
                                 <div>
-                                  <h4 className="font-extrabold text-xs text-slate-800">{screen.name}</h4>
-                                  <p className="text-[10px] text-slate-400">{screen.city} — {screen.brand}</p>
+                                  <h4 className="font-bold text-xs text-white">{client.name}</h4>
+                                  <p className="text-[9px] text-slate-500 mt-0.5">{client.screens} terminaux actifs</p>
                                 </div>
                               </div>
-                              <button 
-                                onClick={() => navigate('/screens')}
-                                className="px-3 py-1 bg-white hover:bg-slate-50 border border-slate-200 text-[10px] font-bold text-slate-700 rounded-lg transition-all active:scale-95 cursor-pointer"
+                              <span
+                                className="text-[9px] font-bold px-2 py-0.5 rounded border"
+                                style={{ backgroundColor: `${client.color}10`, color: client.color, borderColor: `${client.color}20` }}
                               >
-                                Dépanner
+                                {client.status}
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                    <div className="p-4 border-t border-white/5 text-center bg-slate-950/20">
+                      <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Synchronisé avec client-service</span>
+                    </div>
+                  </>
+                )}
+
+                {/* CLIENT: Quick actions */}
+                {userRole === 'CLIENT' && (
+                  <>
+                    <div>
+                      <div className="p-5 border-b border-white/5 bg-slate-950/20">
+                        <h3 className="text-sm font-bold text-white">Actions rapides</h3>
+                        <p className="text-[11px] text-slate-400 mt-0.5">Assistance technique et équipement</p>
+                      </div>
+
+                      <div className="p-5 space-y-4">
+                        <div className="p-4 bg-rose-500/5 border border-rose-500/10 rounded-xl text-center space-y-3">
+                          <p className="text-xs text-slate-300">Un de vos terminaux publicitaires est en panne ou affiche une erreur ?</p>
+                          <button
+                            onClick={() => navigate('/tickets')}
+                            className="w-full h-9 bg-rose-500 hover:bg-rose-400 text-slate-950 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                          >
+                            Signaler une panne
+                          </button>
+                        </div>
+
+                        <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-xl text-center space-y-3">
+                          <p className="text-xs text-slate-300">Consultez l'état détaillé de diffusion de vos écrans en direct.</p>
+                          <button
+                            onClick={() => navigate('/screens')}
+                            className="w-full h-9 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                          >
+                            Inspecter mon parc
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-4 border-t border-white/5 text-center bg-slate-950/20">
+                      <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Digitello Support Client</span>
+                    </div>
+                  </>
+                )}
+
+                {/* TECHNICIAN: Task queue */}
+                {userRole === 'TECHNICIEN' && (
+                  <>
+                    <div>
+                      <div className="p-5 border-b border-white/5 bg-slate-950/20 flex justify-between items-center">
+                        <div>
+                          <h3 className="text-sm font-bold text-white">Maintenance terrain</h3>
+                          <p className="text-[11px] text-slate-400 mt-0.5">Incidents affectés en attente de réparation</p>
+                        </div>
+                      </div>
+
+                      <div className="p-4 space-y-3">
+                        {recentTickets.length === 0 ? (
+                          <div className="p-12 text-center text-slate-500 text-xs">
+                            Aucun incident en cours.
+                          </div>
+                        ) : (
+                          recentTickets.map((ticket, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-3 border border-rose-500/10 bg-rose-500/5 rounded-xl hover:bg-rose-500/10 transition-all cursor-pointer">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+                                  <Wrench size={14} />
+                                </div>
+                                <div className="min-w-0">
+                                  <h4 className="font-bold text-xs text-white truncate">{ticket.desc}</h4>
+                                  <p className="text-[9px] text-slate-500 mt-0.5">{ticket.client} — #{ticket.id}</p>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => navigate('/tickets')}
+                                className="h-7 px-2.5 bg-slate-900 border border-white/5 hover:border-white/10 text-[10px] font-bold text-slate-300 rounded-lg shrink-0 cursor-pointer"
+                              >
+                                Réparer
                               </button>
                             </div>
-                          ))}
-                        </div>
-                      )}
+                          ))
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="p-4 border-t border-slate-50 text-center">
-                    <span className="text-[11px] text-slate-400 font-medium">Actions prioritaires de maintenance</span>
-                  </div>
-                </>
-              )}
+                    <div className="p-4 border-t border-white/5 text-center bg-slate-950/20">
+                      <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">File d'attente technique</span>
+                    </div>
+                  </>
+                )}
+              </motion.div>
 
             </div>
-
           </div>
         </div>
       )}

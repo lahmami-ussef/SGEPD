@@ -6,14 +6,14 @@ import com.digitello.screen_service.service.ScreenService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/screens")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class ScreenController {
 
     private final ScreenService screenService;
@@ -29,20 +29,18 @@ public class ScreenController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ScreenResponse> create(@Valid @RequestBody ScreenRequest request) {
         return ResponseEntity.status(201).body(screenService.create(request));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ScreenResponse> update(@PathVariable Long id,
-                                                  @Valid @RequestBody ScreenRequest request) {
+    public ResponseEntity<ScreenResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody ScreenRequest request) {
         return ResponseEntity.ok(screenService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         screenService.delete(id);
         return ResponseEntity.noContent().build();
@@ -51,6 +49,15 @@ public class ScreenController {
     @GetMapping("/status/{status}")
     public ResponseEntity<List<ScreenResponse>> getByStatus(@PathVariable Screen.Status status) {
         return ResponseEntity.ok(screenService.getByStatus(status));
+    }
+
+    // ✅ PATCH status — pour technicien
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<ScreenResponse> updateStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        String status = body.get("status");
+        return ResponseEntity.ok(screenService.updateStatus(id, status));
     }
 
     @GetMapping("/city/{city}")

@@ -17,6 +17,9 @@ public class GeocodingService {
 
     @SuppressWarnings("unchecked")
     public GeocodingResponse geocode(String address) {
+        if (nominatimUrl == null) {
+            throw new RuntimeException("Nominatim URL not configured");
+        }
         WebClient client = WebClient.builder()
                 .baseUrl(nominatimUrl)
                 .defaultHeader("User-Agent", "Digitello-SGEPD/1.0")
@@ -48,6 +51,9 @@ public class GeocodingService {
 
     @SuppressWarnings("unchecked")
     public GeocodingResponse reverseGeocode(Double lat, Double lng) {
+        if (nominatimUrl == null) {
+            throw new RuntimeException("Nominatim URL not configured");
+        }
         WebClient client = WebClient.builder()
                 .baseUrl(nominatimUrl)
                 .defaultHeader("User-Agent", "Digitello-SGEPD/1.0")

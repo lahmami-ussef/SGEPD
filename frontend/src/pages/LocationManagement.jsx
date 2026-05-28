@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import LocationFormModal from '../components/LocationFormModal';
 import api from '../api';
-import { Pencil, Trash2, Plus, MapPin, RefreshCw, Navigation, Globe, Search, MoreVertical, ExternalLink } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Pencil, Trash2, Plus, MapPin, RefreshCw, Navigation, Globe, Search, Layers } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const LocationManagement = () => {
   const [locations, setLocations] = useState([]);
@@ -13,9 +13,10 @@ const LocationManagement = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   const initialFormState = {
-    screenId: '', city: '', address: '', latitude: '', longitude: '', country: '', postalCode: '', region: ''
+    screenId: '', city: '', address: '', latitude: '', longitude: '',
+    country: '', postalCode: '', region: ''
   };
   const [formData, setFormData] = useState(initialFormState);
 
@@ -35,9 +36,7 @@ const LocationManagement = () => {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const handleOpenCreate = () => {
     setFormData(initialFormState);
@@ -47,10 +46,7 @@ const LocationManagement = () => {
   };
 
   const handleOpenEdit = (location) => {
-    setFormData({
-      ...location,
-      screenId: location.screenId || ''
-    });
+    setFormData({ ...location, screenId: location.screenId || '' });
     setIsEditing(true);
     setCurrentLocation(location);
     setIsModalOpen(true);
@@ -62,8 +58,11 @@ const LocationManagement = () => {
         await api.delete(`/api/locations/${id}`);
         fetchData();
       } catch (error) {
-        console.error("Erreur lors de la suppression", error);
-        alert("Erreur de suppression (vérifiez vos droits Admin).");
+        if (!error.response) {
+          setTimeout(() => fetchData(), 500);
+        } else {
+          alert("Erreur de suppression.");
+        }
       }
     }
   };
@@ -71,13 +70,12 @@ const LocationManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = { 
-        ...formData, 
+      const payload = {
+        ...formData,
         screenId: Number(formData.screenId),
         latitude: parseFloat(formData.latitude),
         longitude: parseFloat(formData.longitude)
       };
-      
       if (isEditing && currentLocation) {
         await api.put(`/api/locations/${currentLocation.id}`, payload);
       } else {
@@ -86,12 +84,28 @@ const LocationManagement = () => {
       setIsModalOpen(false);
       fetchData();
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde", error);
-      alert("Erreur lors de la sauvegarde.");
+    if (!error.response) {
+        setIsModalOpen(false);
+        setTimeout(() => fetchData(), 500);
+        return;
     }
+    const status = error?.response?.status;
+    const msg = error?.response?.data?.message || error?.response?.data;
+    if (status === 409 || String(msg).includes('dupliquée') || String(msg).includes('existe déjà')) {
+        // ✅ Ne devrait plus arriver avec le fix backend, mais au cas où
+        alert("Cet écran a déjà une localisation. La localisation existante sera mise à jour.");
+        setIsModalOpen(false);
+        fetchData();
+    } else if (status === 401) {
+        setIsModalOpen(false);
+        fetchData();
+    } else {
+        alert("Erreur : " + (msg || status || "inconnue"));
+    }
+}
   };
 
-  const filteredLocations = locations.filter(loc => 
+  const filteredLocations = locations.filter(loc =>
     loc.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     loc.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     String(loc.screenId).includes(searchTerm)
@@ -99,179 +113,158 @@ const LocationManagement = () => {
 
   return (
     <Layout>
+      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">Gestion des Localisations</h1>
-          <p className="text-slate-500 font-medium">Positionnez vos écrans géographiquement pour optimiser le suivi.</p>
+          <h1 className="text-xl font-bold tracking-tight text-white">Gestion des Localisations</h1>
+          <p className="text-xs text-slate-400 mt-1">Positionnez vos écrans géographiquement pour optimiser le suivi.</p>
         </div>
-        
         <div className="flex gap-3 w-full md:w-auto">
-          <button 
-            onClick={fetchData} 
-            className="flex flex-row items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 font-bold hover:bg-slate-50 transition-all shadow-sm active:scale-95"
-          >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-            Actualiser
+          <button onClick={fetchData} className="flex items-center justify-center gap-2 h-10 px-4 bg-slate-900 border border-white/5 hover:border-white/10 rounded-xl text-slate-300 hover:text-white font-semibold transition-all cursor-pointer text-xs">
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+            <span>Actualiser</span>
           </button>
-          <button 
-            onClick={handleOpenCreate} 
-            className="flex flex-row items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 active:scale-95"
-          >
-            <Plus size={20} />
-            Ajouter un lieu
+          <button onClick={handleOpenCreate} className="flex items-center justify-center gap-2 h-10 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl font-bold transition-all shadow-md shadow-emerald-500/10 cursor-pointer text-xs">
+            <Plus size={16} />
+            <span>Ajouter un lieu</span>
           </button>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-           <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
-                 <MapPin size={24} />
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+        {[
+          { label: 'Total Localisations', value: locations.length, icon: MapPin, color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
+          { label: 'Villes Couvertes', value: [...new Set(locations.map(l => l.city).filter(Boolean))].length, icon: Globe, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+          { label: 'Référentiel GPS', value: 'WGS84', icon: Navigation, color: 'text-teal-400 bg-teal-500/10 border-teal-500/20' }
+        ].map((card, idx) => {
+          const Icon = card.icon;
+          return (
+            <div key={idx} className="bg-slate-900/60 p-6 rounded-2xl border border-white/5 shadow-md flex justify-between items-center">
+              <div className="flex flex-col space-y-2">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{card.label}</p>
+                <h4 className="text-2xl font-bold text-white tracking-tight leading-none">{card.value}</h4>
+                <p className="text-[9px] text-slate-500 mt-1 font-semibold">Portée géomatique active</p>
               </div>
-              <div>
-                 <p className="text-sm font-semibold text-slate-500">Total Localisations</p>
-                 <h4 className="text-2xl font-bold text-slate-800">{locations.length}</h4>
+              <div className={`w-9 h-9 rounded-lg border ${card.color} flex items-center justify-center`}>
+                <Icon size={16} />
               </div>
-           </div>
-        </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-           <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shadow-sm">
-                 <Globe size={24} />
-              </div>
-              <div>
-                 <p className="text-sm font-semibold text-slate-500">Villes Couvertes</p>
-                 <h4 className="text-2xl font-bold text-slate-800">
-                    {[...new Set(locations.map(l => l.city))].length}
-                 </h4>
-              </div>
-           </div>
-        </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-           <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shadow-sm">
-                 <Navigation size={24} />
-              </div>
-              <div>
-                 <p className="text-sm font-semibold text-slate-500">Précision GPS</p>
-                 <h4 className="text-2xl font-bold text-slate-800">WGS84</h4>
-              </div>
-           </div>
-        </div>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-        {/* Search Bar */}
-        <div className="p-4 border-b border-slate-100 bg-slate-50/30">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Rechercher par ville, adresse ou ID écran..." 
+      {/* Table */}
+      <div className="bg-slate-900/60 border border-white/5 rounded-2xl shadow-lg overflow-hidden mb-8">
+        <div className="p-5 border-b border-white/5 bg-slate-950/20">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+            <input
+              type="text"
+              placeholder="Rechercher par ville, adresse ou ID écran..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-sm"
+              className="w-full h-10 pl-10 pr-4 bg-slate-900 border border-white/5 text-white rounded-xl placeholder:text-slate-500 focus:border-emerald-500/50 outline-none transition-all text-xs font-semibold"
             />
           </div>
         </div>
 
         {loading ? (
           <div className="p-20 flex flex-col items-center justify-center">
-            <RefreshCw size={40} className="text-emerald-500 animate-spin mb-4" />
-            <span className="text-slate-500 font-medium tracking-wide">Syncronisation des données de géolocalisation...</span>
+            <RefreshCw size={36} className="text-emerald-500 animate-spin mb-4" />
+            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Synchronisation GPS...</span>
           </div>
         ) : filteredLocations.length === 0 ? (
           <div className="p-20 flex flex-col items-center justify-center text-center">
-            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-              <MapPin size={40} className="text-slate-300" />
+            <div className="w-16 h-16 bg-slate-800/40 rounded-2xl flex items-center justify-center mb-6 border border-white/5">
+              <MapPin size={28} className="text-slate-500" />
             </div>
-            <h3 className="text-xl font-bold text-slate-700 mb-2">Aucune localisation trouvée</h3>
-            <p className="text-slate-500 max-w-sm mb-8 leading-relaxed">Nous n'avons trouvé aucune donnée correspondant à votre recherche ou aucun point n'a encore été créé.</p>
-            <button onClick={handleOpenCreate} className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-md">
-              Créer un point de localisation
+            <h3 className="text-sm font-bold text-white mb-1">Aucune localisation trouvée</h3>
+            <p className="text-xs text-slate-500 max-w-sm mb-6 font-medium">Aucune donnée ne correspond à votre recherche.</p>
+            <button onClick={handleOpenCreate} className="h-10 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl font-bold text-xs flex items-center gap-2 cursor-pointer">
+              <Plus size={16} /><span>Créer un point</span>
             </button>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50/50 border-b border-slate-200">
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Écran</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Ville & Pays</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Adresse</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Coordonnées GPS</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+                <tr className="bg-slate-950/40 text-[10px] font-bold uppercase tracking-widest text-slate-400 border-b border-white/5">
+                  <th className="px-6 py-4">Écran</th>
+                  <th className="px-6 py-4">Ville & Pays</th>
+                  <th className="px-6 py-4">Adresse</th>
+                  <th className="px-6 py-4">Coordonnées GPS</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredLocations.map(loc => (
-                  <tr key={loc.id} className="hover:bg-slate-50/30 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                         <div className="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs shadow-sm">
-                           {loc.screenId}
-                         </div>
-                         <span className="text-sm font-semibold text-slate-700">Monitor #{loc.screenId}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-800">{loc.city}</span>
-                        <span className="text-xs text-slate-400 font-medium flex items-center gap-1"><Globe size={10} /> {loc.country || 'N/A'}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-slate-600 font-medium truncate max-w-[200px] block" title={loc.address}>
-                        {loc.address}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1">
-                         <code className="text-[11px] bg-slate-100 px-1.5 py-0.5 rounded text-amber-700 font-mono w-fit">Lat: {loc.latitude?.toFixed(4)}</code>
-                         <code className="text-[11px] bg-slate-100 px-1.5 py-0.5 rounded text-amber-700 font-mono w-fit">Lng: {loc.longitude?.toFixed(4)}</code>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right whitespace-nowrap">
-                      <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <a 
-                          href={`https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`} 
-                          target="_blank" 
-                          rel="noreferrer"
-                          className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                          title="Voir sur Maps"
-                        >
-                          <ExternalLink size={18} />
-                        </a>
-                        <button 
-                          onClick={() => handleOpenEdit(loc)} 
-                          className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" 
-                          title="Modifier"
-                        >
-                          <Pencil size={18} />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(loc.id)} 
-                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" 
-                          title="Supprimer"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                      <div className="group-hover:hidden">
-                         <MoreVertical size={18} className="text-slate-300 ml-auto" />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+              <tbody className="divide-y divide-white/5">
+                <AnimatePresence>
+                  {filteredLocations.map((loc) => (
+                    <motion.tr
+                      key={loc.id}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      className="hover:bg-white/[0.01] transition-colors group"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-slate-800 border border-white/5 flex items-center justify-center">
+                            <Layers size={14} className="text-slate-400" />
+                          </div>
+                          <div>
+                            <span className="font-bold text-white">Monitor #{loc.screenId}</span>
+                            <span className="text-[9px] text-slate-500 font-bold block uppercase mt-0.5">screen-service</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-bold text-slate-300">{loc.city}</span>
+                          <span className="text-[10px] text-slate-500 font-bold flex items-center gap-1">
+                            <Globe size={11} /> {loc.country || 'Maroc'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-xs text-slate-400 font-semibold truncate max-w-[200px] block" title={loc.address}>
+                          {loc.address}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1 font-mono font-bold text-[10px]">
+                          <span className="text-emerald-400">Lat: {loc.latitude?.toFixed(5)}</span>
+                          <span className="text-blue-400">Lng: {loc.longitude?.toFixed(5)}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => handleOpenEdit(loc)}
+                            className="p-1.5 bg-slate-900 border border-white/5 text-slate-400 hover:text-white rounded-lg hover:border-white/10 transition-all cursor-pointer"
+                            title="Modifier"
+                          >
+                            <Pencil size={13} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(loc.id)}
+                            className="p-1.5 bg-slate-900 border border-white/5 text-slate-400 hover:text-rose-400 hover:border-rose-500/20 rounded-lg transition-all cursor-pointer"
+                            title="Supprimer"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
               </tbody>
             </table>
           </div>
         )}
       </div>
 
-      <LocationFormModal 
+      <LocationFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         formData={formData}
